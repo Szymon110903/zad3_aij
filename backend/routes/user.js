@@ -1,5 +1,11 @@
 const express = require('express');
-const producktApi = express.Router();
+const userApi = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ * - name: Użytkownicy
+ * description: Api - users
+ */
 
-module.exports = producktApi;
+module.exports = userApi;
