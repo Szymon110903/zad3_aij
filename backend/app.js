@@ -1,17 +1,15 @@
 
 const express = require('express');
-require('dotenv').config();
+const env = require('dotenv').config();
 const app = express();
 const port = process.env.PORT;
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('swagger-jsdoc');
 const mongoose = require('mongoose');
-
+app.use(express.json()); 
 // podłączenie pliku api 
 const apiRouter = require('./routes/api');
-app.use('/routes/api' ,apiRouter);
-// dane JSON wysyłane w api
-app.use(express.json()); 
+app.use('/api' ,apiRouter);
 
 // ŁĄCZENIE Z BAZĄ
 mongoose.connect(process.env.DATABASE_URL)
@@ -20,7 +18,7 @@ mongoose.connect(process.env.DATABASE_URL)
 
 
 // Definicja opcji dla swagger-jsdoc
-const url = 'http://localhost:'+process.env.PORT;
+const url = 'http://localhost:'+process.env.PORT +'/api';
 const options = {
   definition: {
     openapi: '3.0.0', 
@@ -36,7 +34,7 @@ const options = {
       },
     ],
   },
-  apis: ['./routes/*.js', './app.js'], 
+  apis: ['./routes/*.js'], 
 };
 const specs = swaggerDocs(options);
 

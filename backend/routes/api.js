@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 router.use('/category' ,require('./category'));
-router.use('/produkt' ,require('./produkt'));
+router.use('/products' ,require('./produkt'));
 router.use('/user' ,require('./user'));
-router.use('/zamowienia' ,require('./zamowienia'));
+router.use('/orders' ,require('./zamowienia'));
 
 module.exports = router;

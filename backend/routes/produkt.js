@@ -1,135 +1,245 @@
 const express = require('express');
 const producktApi = express.Router();
-
-/**
- * @swagger
- * tags:
- * - name: Produkty
- * description: Api - products
- */
-
-
-producktApi.get('/products', async ()=> {
-    // all produckts
-})
-producktApi.get('/products/id', async (id)=> {
-    // get po id
-})
-
-producktApi.post('/products', async ()=> {
-    // dodaje do bazy - dodać parametry
-})
-
-producktApi.put('/products/id', async (id)=> {
-    // aktualizacja produktu
-})
+const { StatusCodes } = require('http-status-codes');
+const Produkt = require('../models/models').Produkt;
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     Product:
+ *     Produkt:
  *       type: object
+ *       required:
+ *         - id
+ *         - nazwa
+ *         - opis
+ *         - cena_jednostkowa
+ *         - kategoria
  *       properties:
+ *         _id:
+ *           type: string
+ *           description: Automatyczne ID rekordu z MongoDB (ObjectId)
+ *           example: 64f1a2b3c4d5e6f7a8b9c0d1
  *         id:
  *           type: number
- *           example: "1"
- *         name:
+ *           description: Twój własny numer ID produktu (wymagany, unikalny)
+ *           example: 101
+ *         nazwa:
  *           type: string
- *           example: "Sample product"
- *         description:
+ *           description: Nazwa produktu
+ *           example: "Wiertarka udarowa"
+ *         opis:
  *           type: string
- *           example: "A short description"
- *         price:
+ *           description: Opis produktu
+ *           example: "Profesjonalna wiertarka 700W"
+ *         cena_jednostkowa:
  *           type: number
  *           format: float
- *           example: 19.99
- *         weight:
- *           type: number
- *           format: float
- *           example: 0.5
- *         categoryId:
- *           type: number
- *           example: "1"
- *       required:
- *         - name
- *         - price
- *         - weight
- *         - categoryId
- *
+ *           description: Cena za sztukę
+ *           example: 199.99
+ *         kategoria:
+ *           type: string
+ *           description: ID Kategorii (ObjectId) do której należy produkt
+ *           example: "64f1a2b3c4d5e6f7a8b9c0d1"
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
+/**
+ * @swagger
+ * tags:
+ *   - name: Produkty
+ *     description: Zarządzanie produktami
+ */
+
+/**
+ * @swagger
  * /products:
  *   get:
- *     tags:
- *       - Produkty
- *     summary: Get all products
+ *     summary: Pobierz wszystkie produkty
+ *     tags: [Produkty]
  *     responses:
  *       200:
- *         description: A list of products
+ *         description: Lista produktów
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Product'
+ *                 $ref: '#/components/schemas/Produkt'
+ *       500:
+ *         description: Błąd serwera
+ */
+producktApi.get('/', async (req, res) => {
+    try {
+        // Populate pobiera też dane kategorii (np. nazwę) zamiast samego ID
+        const products = await Produkt.find({}).populate('kategoria');
+        res.status(StatusCodes.OK).json(products);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     summary: Pobierz jeden produkt po ID (MongoDB _id)
+ *     tags: [Produkty]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: MongoDB ObjectId produktu
+ *     responses:
+ *       200:
+ *         description: Znaleziono produkt
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Produkt'
+ *       404:
+ *         description: Nie znaleziono produktu
+ *       500:
+ *         description: Błąd serwera
+ */
+producktApi.get('/:id', async (req, res) => {
+    try {
+        const product = await Produkt.findOne({ id: req.params.id }).populate('kategoria');
+        if (product) {
+            res.status(StatusCodes.OK).json(product);
+        } else {
+            res.status(StatusCodes.NOT_FOUND).json({ error: "Nie znaleziono produktu" });
+        }
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
+ * /products:
  *   post:
- *     tags:
- *       - Produkty
- *     summary: Create a new product
+ *     summary: Utwórz nowy produkt
+ *     tags: [Produkty]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Product'
+ *             type: object
+ *             required:
+ *               - id
+ *               - nazwa
+ *               - opis
+ *               - cena_jednostkowa
+ *               - kategoria
+ *             properties:
+ *               id:
+ *                 type: number
+ *                 example: 101
+ *               nazwa:
+ *                 type: string
+ *                 example: "Nowy Produkt"
+ *               opis:
+ *                 type: string
+ *                 example: "Opis produktu"
+ *               cena_jednostkowa:
+ *                 type: number
+ *                 example: 50.00
+ *               kategoria:
+ *                 type: string
+ *                 description: Podaj istniejące ID kategorii
+ *                 example: "64f1a2b3c4d5e6f7a8b9c0d1"
  *     responses:
  *       201:
- *         description: Product created
+ *         description: Utworzono produkt
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Product'
- *
+ *               $ref: '#/components/schemas/Produkt'
+ *       400:
+ *         description: Błąd walidacji
+ *       500:
+ *         description: Błąd serwera
+ */
+producktApi.post('/', async (req, res) => {
+    try {
+        const { id, nazwa, opis, cena_jednostkowa, kategoria } = req.body;
+
+        const nowyProdukt = new Produkt({
+            id,
+            nazwa,
+            opis,
+            cena_jednostkowa,
+            kategoria
+        });
+
+        const zapisanyProdukt = await nowyProdukt.save();
+        res.status(StatusCodes.CREATED).json(zapisanyProdukt);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
  * /products/{id}:
- *   parameters:
- *     - in: path
- *       name: id
- *       required: true
- *       schema:
- *         type: string
- *       description: Product ID
- *   get:
- *     tags:
- *       - Produkty
- *     summary: Get a product by id
- *     responses:
- *       200:
- *         description: Product found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Product'
- *       404:
- *         description: Product not found
  *   put:
- *     tags:
- *       - Produkty
- *     summary: Update a product by id
+ *     summary: Aktualizuj produkt po ID (MongoDB _id)
+ *     tags: [Produkty]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: MongoDB ObjectId produktu
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Product'
+ *             type: object
+ *             properties:
+ *               nazwa:
+ *                 type: string
+ *               opis:
+ *                 type: string
+ *               cena_jednostkowa:
+ *                 type: number
+ *               kategoria:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Product updated
+ *         description: Zaktualizowano produkt
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Product'
+ *               $ref: '#/components/schemas/Produkt'
  *       404:
- *         description: Product not found
+ *         description: Nie znaleziono produktu
+ *       500:
+ *         description: Błąd serwera
  */
-
+producktApi.put('/:id', async (req, res) => {
+    try {
+        const produkt = await Produkt.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+        
+        if (produkt) {
+            res.status(StatusCodes.OK).json(produkt);
+        } else {
+            res.status(StatusCodes.NOT_FOUND).json({ error: "Nie znaleziono produktu do aktualizacji" });
+        }
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
 
 module.exports = producktApi;
