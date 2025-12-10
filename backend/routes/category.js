@@ -63,5 +63,43 @@ categoryApi.get('/', async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
   }
 });
+/** * @swagger
+ * /category:
+ *   post:
+ *     summary: Dodaj nową kategorię
+ *     tags:
+ *       - Kategoria
+ *     requestBody:  
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nazwa:
+ *                 type: string
+ *                 description: Nazwa kategorii
+ *                 example: Elektronika
+ *     responses:
+ *       '201':
+ *         description: Kategoria została pomyślnie dodana
+ *         content:
+ *           application/json:
+ *             schema: 
+ *               $ref: '#/components/schemas/Category'
+ *       '500':
+ *         description: Błąd serwera
+ * 
+ */
 
+categoryApi.post('/', async (req, res) => {
+  try {
+    const { nazwa } = req.body;
+    const nowaKategoria = new Kategoria({ nazwa });
+    const zapisanaKategoria = await nowaKategoria.save();
+    res.status(StatusCodes.CREATED).json(zapisanaKategoria);
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+  }
+});
 module.exports = categoryApi;

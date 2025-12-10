@@ -25,7 +25,6 @@ const pozycjaZamowieniaSchema = new Schema({
 });
 
 const zamowienieSchema = new Schema({
-  id: { type: Number, required: true, unique: true },
   dataZatwierdzenia: {type: Date, default: null},
   stan: {
     type: mongoose.Schema.Types.ObjectId,
@@ -37,7 +36,7 @@ const zamowienieSchema = new Schema({
   sumaCalkowita: { type: Number }
 
 }, {
-  timestamps: true, collection: 'Zamowienia'
+  timestamps: false, collection: 'Zamowienia'
 });
 
 module.exports = mongoose.model('Zamowienie', zamowienieSchema);

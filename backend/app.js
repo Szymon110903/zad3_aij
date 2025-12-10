@@ -11,6 +11,7 @@ app.use(express.json());
 const apiRouter = require('./routes/api');
 app.use('/api' ,apiRouter);
 
+
 // ŁĄCZENIE Z BAZĄ
 mongoose.connect(process.env.DATABASE_URL)
     .then(()=> console.log("polaczono do bazy"))
@@ -42,6 +43,10 @@ const specs = swaggerDocs(options);
 // app.use([endpoint], [serwowanie UI], [konfiguracja na podst. specs])
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
+app.get('/swagger.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(specs);
+});
 
 app.listen(port, ()=> {
     console.log('');

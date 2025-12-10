@@ -2,6 +2,8 @@ const express = require('express');
 const producktApi = express.Router();
 const { StatusCodes } = require('http-status-codes');
 const Produkt = require('../models/models').Produkt;
+const axios = require('axios');
+const { model } = require('mongoose');
 
 /**
  * @swagger
@@ -10,7 +12,6 @@ const Produkt = require('../models/models').Produkt;
  *     Produkt:
  *       type: object
  *       required:
- *         - id
  *         - nazwa
  *         - opis
  *         - cena_jednostkowa
@@ -20,10 +21,6 @@ const Produkt = require('../models/models').Produkt;
  *           type: string
  *           description: Automatyczne ID rekordu z MongoDB (ObjectId)
  *           example: 64f1a2b3c4d5e6f7a8b9c0d1
- *         id:
- *           type: number
- *           description: Twój własny numer ID produktu (wymagany, unikalny)
- *           example: 101
  *         nazwa:
  *           type: string
  *           description: Nazwa produktu
@@ -111,7 +108,7 @@ producktApi.get('/', async (req, res) => {
  */
 producktApi.get('/:id', async (req, res) => {
     try {
-        const product = await Produkt.findOne({ id: req.params.id }).populate('kategoria');
+        const product = await Produkt.findById(req.params.id).populate('kategoria');
         if (product) {
             res.status(StatusCodes.OK).json(product);
         } else {
@@ -135,15 +132,11 @@ producktApi.get('/:id', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - id
  *               - nazwa
  *               - opis
  *               - cena_jednostkowa
  *               - kategoria
  *             properties:
- *               id:
- *                 type: number
- *                 example: 101
  *               nazwa:
  *                 type: string
  *                 example: "Nowy Produkt"
@@ -171,10 +164,9 @@ producktApi.get('/:id', async (req, res) => {
  */
 producktApi.post('/', async (req, res) => {
     try {
-        const { id, nazwa, opis, cena_jednostkowa, kategoria } = req.body;
+        const { nazwa, opis, cena_jednostkowa, kategoria } = req.body;
 
         const nowyProdukt = new Produkt({
-            id,
             nazwa,
             opis,
             cena_jednostkowa,
@@ -230,13 +222,87 @@ producktApi.post('/', async (req, res) => {
  */
 producktApi.put('/:id', async (req, res) => {
     try {
-        const produkt = await Produkt.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+        const produkt = await Produkt.findByIdAndUpdate(req.params.id, req.body, { new: true });
         
         if (produkt) {
             res.status(StatusCodes.OK).json(produkt);
         } else {
             res.status(StatusCodes.NOT_FOUND).json({ error: "Nie znaleziono produktu do aktualizacji" });
         }
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
+/**
+ * @swagger
+ * /products/{id}/seo-description:
+ *   get:
+ *     summary: Generuj SEO opis produktu w formacie HTML za pomocą Groq API
+ *     tags: [Produkty]
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        required: true
+ *        schema:
+ *          type: string
+ *          description: MongoDB ObjectId produktu
+ *     responses:
+ *      200:
+ *        description: Wygenerowano SEO opis produktu
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                seoDescription:
+ *                  type: string
+ *                  description: SEO opis produktu w formacie HTML
+ *                  example: "<h2>Wiertarka udarowa - Profesjonalne narzędzie dla Ciebie</h2><p>...</p>"
+ *      404:
+ *        description: Nie znaleziono produktu
+ *      500:
+ *        description: Błąd serwera
+ */
+
+producktApi.get('/:id/seo-description', async (req, res) => {
+    try {
+        const produkt = await Produkt.findById(req.params.id).populate('kategoria');
+        if (!produkt) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Produkt nie znaleziony" });
+        }
+        const nazwaKategorii = produkt.kategoria ? produkt.kategoria.nazwa : "Ogólna";
+
+        const systemPrompt = `
+            Jesteś ekspertem SEO i copywriterem. Stwórz atrakcyjny opis produktu w formacie HTML dla sklepu internetowego 
+            W języku Polskim.`;
+        const userPrompt = `
+            Dane produktu:
+            - Nazwa: ${produkt.nazwa}
+            - Opis techniczny: ${produkt.opis}
+            - Cena: ${produkt.cena_jednostkowa} PLN
+            - Kategoria: ${nazwaKategorii}
+            
+            Wymagania:
+            - Użyj tagów HTML takich jak <h2>, <p>, <ul>, <li>, <strong>.
+            - Tekst ma być zachęcający do zakupu i zawierać słowa kluczowe związane z nazwą i kategorią.
+            - Nie dodawaj znaczników Markdown (jak \`\`\`html). Zwróć czysty kod HTML.
+        `;
+        const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+            model: 'openai/gpt-oss-120b',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 500,   
+            temperature: 0.7
+        }, {
+            headers: {
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                'Content-Type': 'application/json',
+            },
+        }); 
+        const seoDescription = response.data.choices[0].message.content.trim();
+        res.status(StatusCodes.OK).json({ seoDescription: seoDescription });
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }

@@ -46,16 +46,11 @@ const { Zamowienie, StanZamowienia } = require('../models/models');
  *     Zamowienie:
  *       type: object
  *       required:
- *         - id
  *         - stan
  *         - nazwaUzytkownika
  *         - email
  *         - telefon
  *       properties:
- *         id:
- *           type: integer
- *           description: Twój unikalny numer zamówienia
- *           example: 1001
  *         dataZatwierdzenia:
  *           type: string
  *           format: date-time
@@ -141,15 +136,12 @@ zamowieniaApi.get('/', async (req, res) => {
  *           schema:
  *             type: object
  *             required:
- *               - id
  *               - stan
  *               - nazwaUzytkownika
  *               - email
  *               - telefon
  *               - pozycje
  *             properties:
- *               id:
- *                 type: integer
  *               stan:
  *                 type: string
  *                 description: ID istniejącego Stanu
@@ -197,8 +189,8 @@ zamowieniaApi.post('/', async (req, res) => {
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
- *         description: Własny numer ID zamówienia
+ *           type: string
+ *         description: MongoDB ObjectId (_id)
  *     requestBody:
  *       required: true
  *       content:
@@ -219,9 +211,20 @@ zamowieniaApi.post('/', async (req, res) => {
 zamowieniaApi.patch('/:id', async (req, res) => {
     try {
         const { stan } = req.body;
-        const zamowienie = await Zamowienie.findOneAndUpdate(
-            { id: req.params.id }, 
-            { stan: stan },
+        const idZamowienia = req.params.id;
+
+        const stanZamowienia = await StanZamowienia.findOne({ nazwa: 'ZATWIERDZONE' });
+        if (!stanZamowienia) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Nie znaleziono stanu ZATWIERDZONE" });
+        }
+        let daneDoAktualizacji = { stan: stan };
+        if (stan === stanZamowienia._id.toString()) {
+            daneDoAktualizacji.dataZatwierdzenia = new Date();
+        }
+
+        const zamowienie = await Zamowienie.findByIdAndUpdate(
+            req.params.id, 
+            daneDoAktualizacji,
             { new: true }
         ).populate('stan');
 
