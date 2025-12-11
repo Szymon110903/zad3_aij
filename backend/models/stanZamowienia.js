@@ -5,6 +5,6 @@ const stanZamowieniaSchema = new Schema({
   nazwa: { type: String, enum: [ 'NIEZATWIERDZONE', 'ZATWIERDZONE', 'ANULOWANE', 'ZREALIZOWANE'],
      required: true },
 },
-{ timestamps: true, collection: 'StanZamowienia' });
+{ timestamps: false, collection: 'StanZamowienia' });
 
 module.exports = mongoose.model('StanZamowienia', stanZamowieniaSchema);

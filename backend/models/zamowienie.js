@@ -1,6 +1,20 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const opiniaSchema = new Schema({
+    ocena : {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5,
+        validate: {
+            validator: Number.isInteger,
+            message: '{VALUE} nie jest liczbą całkowitą'
+        }
+    },
+    komentarz : { type: String }
+});
+
 const pozycjaZamowieniaSchema = new Schema({
   produkt: {
     type: mongoose.Schema.Types.ObjectId,
@@ -11,10 +25,6 @@ const pozycjaZamowieniaSchema = new Schema({
     type: Number,
     required: true,
     min: 1,
-    validate: {
-      validator: Number.isInteger,
-      message: '{VALUE} nie jest liczbą całkowitą'
-    }
   },
   cenaWChwiliZakupu: { 
     type: Number,
@@ -32,9 +42,9 @@ const zamowienieSchema = new Schema({
   nazwaUzytkownika: { type: String, required: true },
   email: { type: String, required: true },
   telefon: { type: String, required: true },
-  pozycje: [pozycjaZamowieniaSchema],
-  sumaCalkowita: { type: Number }
-
+  pozycje: { type: [pozycjaZamowieniaSchema], required: true },
+  sumaCalkowita: { type: Number },
+  opinia: { type: opiniaSchema, default: null, required: false }
 }, {
   timestamps: false, collection: 'Zamowienia'
 });

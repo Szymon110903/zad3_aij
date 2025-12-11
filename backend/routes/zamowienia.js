@@ -2,6 +2,8 @@ const express = require('express');
 const zamowieniaApi = express.Router();
 const { StatusCodes } = require('http-status-codes');
 const { Zamowienie, StanZamowienia } = require('../models/models'); 
+const { verifyToken } = require('../middleware');
+
 
 /**
  * @swagger
@@ -96,6 +98,8 @@ const { Zamowienie, StanZamowienia } = require('../models/models');
  * /orders:
  *   get:
  *     summary: Pobierz wszystkie zamówienia
+ *     security:
+ *      - bearerAuth: []
  *     tags:
  *       - Zamowienia
  *     responses:
@@ -127,6 +131,8 @@ zamowieniaApi.get('/', async (req, res) => {
  * /orders:
  *   post:
  *     summary: Dodaj nowe zamówienie
+ *     security:
+ *      - bearerAuth: []
  *     tags:
  *       - Zamowienia
  *     requestBody:
@@ -170,7 +176,43 @@ zamowieniaApi.get('/', async (req, res) => {
 zamowieniaApi.post('/', async (req, res) => {
     try {
         const noweZamowienie = new Zamowienie(req.body);
+        if (noweZamowienie.stan == null) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Pole stan jest wymagane" });
+        }
+        const stanZamowienia = await StanZamowienia.findById(noweZamowienie.stan);
+        if (!stanZamowienia) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Nieprawidłowe ID stanu zamówienia" });
+        }
+        if (!noweZamowienie.pozycje || noweZamowienie.pozycje.length === 0) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Zamówienie musi zawierać co najmniej jedną pozycję" });
+        }
+        for (const pozycja of noweZamowienie.pozycje) {
+            if (!pozycja.ilosc || pozycja.ilosc < 1) {
+                return res.status(StatusCodes.BAD_REQUEST).json({ 
+                    error: `Błąd: Ilość dla produktu ${pozycja.produkt} musi być większa niż 0` 
+                });
+            }
+            if (pozycja.cenaWChwiliZakupu < 0) {
+                 return res.status(StatusCodes.BAD_REQUEST).json({ error: "Cena nie może być ujemna" });
+            }
+        }
+        noweZamowienie.sumaCalkowita = noweZamowienie.pozycje.reduce((sum, pozycje) => {
+            const cenaPoRabacie = pozycje.cenaWChwiliZakupu * (1 - (pozycje.rabat || 0) / 100);
+            const cenaZVat = cenaPoRabacie * (1 + (pozycje.stawkaVat || 23) / 100);
+            return sum + cenaZVat * pozycje.ilosc;
+        }, 0);
+        if (isNaN(noweZamowienie.sumaCalkowita) || noweZamowienie.sumaCalkowita < 0) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Suma całkowita zamówienia jest nieprawidłowa" });
+        }
+        if (noweZamowienie.stan == null || noweZamowienie.nazwaUzytkownika == null || noweZamowienie.email == null || noweZamowienie.telefon == null
+            || noweZamowienie.stan === '' || noweZamowienie.nazwaUzytkownika === '' || noweZamowienie.email === '' || noweZamowienie.telefon === ''
+        ) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Pola stan, nazwaUzytkownika, email i telefon są wymagane" });
+        }
+    
         const zapisane = await noweZamowienie.save();
+
+
         res.status(StatusCodes.CREATED).json(zapisane);
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
@@ -182,6 +224,8 @@ zamowieniaApi.post('/', async (req, res) => {
  * /orders/{id}:
  *   patch:
  *     summary: Zmień STAN zamówienia po numerze ID 
+ *     security:
+ *      - bearerAuth: []
  *     tags:
  *       - Zamowienia
  *     parameters:
@@ -298,6 +342,76 @@ zamowieniaApi.get('/status/:id', async (req, res) => {
             .populate('pozycje.produkt'); 
             
         res.status(StatusCodes.OK).json(zamowienia);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
+
+/**
+ * @swagger
+ * /orders/{id}/opinia:
+ *   post:
+ *     summary: Dodaj opinię do zamówienia
+ *     security:
+ *       - bearerAuth: []
+ *     tags:
+ *       - Zamowienia
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID Zamówienia (ObjectId)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - ocena
+ *             properties:
+ *               ocena:
+ *                 type: integer
+ *                 description: Ocena od 1 do 5
+ *               komentarz:
+ *                 type: string
+ *                 description: Komentarz do opinii
+ *     responses:
+ *       '200':
+ *         description: Opinia dodana pomyślnie
+ *       '400':
+ *         description: Błąd w danych wejściowych
+ *       '403':
+ *         description: Brak uprawnień do dodania opinii do tego zamówienia
+ *       '404':
+ *         description: Zamówienie nie znalezione
+ *       '500':
+ *         description: Błąd serwera
+ */
+
+zamowieniaApi.post('/:id/opinia',verifyToken,async (req, res) => {
+    try {
+        const { ocena, komentarz } = req.body;
+        const idZamowienia = req.params.id;
+        const zamowienie = await Zamowienie.findById(idZamowienia).populate('stan');
+        const username = req.user.username;
+         if (!zamowienie) {
+            return res.status(StatusCodes.NOT_FOUND).json({ error: "Zamówienie nie znalezione" });
+        }
+        if (zamowienie.nazwaUzytkownika !== username) {
+            return res.status(StatusCodes.FORBIDDEN).json({ error: "Nie masz uprawnień do dodania opinii do tego zamówienia" });
+        }
+        if (zamowienie.opinia) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Opinia do tego zamówienia już istnieje" });
+        }
+        if (zamowienie.stan.nazwa !== 'ZREALIZOWANE' && zamowienie.stan.nazwa !== 'ANULOWANE') {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: "Opinię można dodać tylko do zamówień o stanie ZREALIZOWANE lub ANULOWANE" });
+        }
+        zamowienie.opinia = { ocena, komentarz };
+        await zamowienie.save();
+        res.status(StatusCodes.OK).json(zamowienie);
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }

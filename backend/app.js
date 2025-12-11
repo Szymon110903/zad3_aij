@@ -30,7 +30,7 @@ const options = {
       description: 'Dokumentacja API dla serwera Express z Mongoose',
     },
     servers: [{url: url, description: 'Serwer lokalny', }],
-    Components: {
+    components: {
       securitySchemes: {
         bearerAuth: {
           type: 'http',
@@ -39,7 +39,7 @@ const options = {
         },
       },
     },
-    security: [{ bearerAuth: [] }],
+    // security: [{ bearerAuth: [] }],
   },
   apis: ['./routes/*.js'], 
 };

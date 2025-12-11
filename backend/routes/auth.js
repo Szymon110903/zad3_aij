@@ -6,9 +6,94 @@ const jsonwebtoken = require('jsonwebtoken');
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     UserLogin:
+ *       type: object
+ *       required:
+ *         - username
+ *         - password
+ *       properties:
+ *         username:
+ *           type: string
+ *           description: Nazwa użytkownika
+ *           example: "admin"
+ *         password:
+ *           type: string
+ *           format: password
+ *           description: Hasło użytkownika
+ *           example: "admin"
+ *     UserRegister:
+ *       type: object
+ *       required:
+ *         - username
+ *         - password
+ *       properties:
+ *         username:
+ *           type: string
+ *           example: "admin"
+ *         password:
+ *           type: string
+ *           format: password
+ *           example: "admin"
+ *         type:
+ *           type: string
+ *           description: Rola użytkownika - ['ADMIN', 'CUSTOMER']
+ *           example: "ADMIN"
+ *           default: "CUSTOMER"
  * tags:
  *   - name: Użytkownicy
- *     description: Api - users
+ *     description: Logowanie i rejestracja
+ */
+
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Zaloguj się (Pobierz token JWT)
+ *     tags: [Użytkownicy]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserLogin'
+ *     responses:
+ *       200:
+ *         description: Pomyślnie zalogowano
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: Token JWT
+ *       401:
+ *         description: Nieprawidłowa nazwa użytkownika lub hasło
+ *       500:
+ *         description: Błąd serwera
+ */
+
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Zarejestruj nowego użytkownika
+ *     tags: [Użytkownicy]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserRegister'
+ *     responses:
+ *       201:
+ *         description: Użytkownik zarejestrowany pomyślnie
+ *       409:
+ *         description: Nazwa użytkownika już istnieje
+ *       500:
+ *         description: Błąd serwera
  */
 
 userApi.post('/login', async (req, res) => {
@@ -28,7 +113,7 @@ userApi.post('/login', async (req, res) => {
             username: user.username, 
             type: user.type }, 
             process.env.JWT_SECRET, { expiresIn: '1h' });
-
+        
         res.status(StatusCodes.OK).json({ token: token });
     }catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
@@ -38,6 +123,21 @@ userApi.post('/login', async (req, res) => {
  * @swagger
  * /auth/register:
  *   post:
+ *     summary: Zarejestruj nowego użytkownika
+ *     tags: [Użytkownicy]
+ *     requestBody:
+ *       required: true
+ *     content:
+ *       application/json:
+ *         schema:
+ *           $ref: '#/components/schemas/UserRegister'
+ *     responses:
+ *       201:
+ *         description: Użytkownik zarejestrowany pomyślnie
+ *       409:
+ *         description: Nazwa użytkownika już istnieje
+ *       500:
+ *         description: Błąd serwera
  */
 userApi.post('/register', async (req, res) => {
     try {

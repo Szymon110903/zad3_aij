@@ -1,0 +1,32 @@
+[
+  {
+    "nazwa": "Smartfon Galaxy X",
+    "opis": "Nowoczesny smartfon z ekranem AMOLED i obsługą sieci 5G.",
+    "cena_jednostkowa": 2999.99,
+    "kategoria": "Elektronika"
+  },
+  {
+    "nazwa": "Laptop Gamingowy Pro",
+    "opis": "Wydajny laptop do gier. Procesor i7, 16GB RAM, karta graficzna RTX.",
+    "cena_jednostkowa": 5499.00,
+    "kategoria": "Elektronika"
+  },
+  {
+    "nazwa": "Słuchawki Bezprzewodowe Bass",
+    "opis": "Wygodne słuchawki nauszne z aktywną redukcją szumów (ANC).",
+    "cena_jednostkowa": 349.50,
+    "kategoria": "Elektronika"
+  },
+  {
+    "nazwa": "Telewizor 4K Ultra",
+    "opis": "55-calowy telewizor Smart TV z systemem Android.",
+    "cena_jednostkowa": 1899.00,
+    "kategoria": "Elektronika"
+  },
+  {
+    "nazwa": "Powerbank 20000mAh",
+    "opis": "Przenośna ładowarka z funkcją szybkiego ładowania.",
+    "cena_jednostkowa": 99.99,
+    "kategoria": "Elektronika"
+  }
+]

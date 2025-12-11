@@ -2,8 +2,12 @@ const express = require('express');
 const productApi = express.Router();
 const { StatusCodes } = require('http-status-codes');
 const Produkt = require('../models/models').Produkt;
+const Kategoria = require('../models/models').Kategoria;
 const axios = require('axios');
-const { model } = require('mongoose');
+const {verifyToken} = require('../middleware');
+const multer = require('multer'); 
+const upload = multer({ dest: 'uploads/' }); 
+const fs = require('fs');
 
 /**
  * @swagger
@@ -73,7 +77,6 @@ const { model } = require('mongoose');
  */
 productApi.get('/', async (req, res) => {
     try {
-        // Populate pobiera też dane kategorii (np. nazwę) zamiast samego ID
         const products = await Produkt.find({}).populate('kategoria');
         res.status(StatusCodes.OK).json(products);
     } catch (error) {
@@ -124,6 +127,8 @@ productApi.get('/:id', async (req, res) => {
  * /products:
  *   post:
  *     summary: Utwórz nowy produkt
+ *     security:
+ *      - bearerAuth: []
  *     tags: [Produkty]
  *     requestBody:
  *       required: true
@@ -162,7 +167,7 @@ productApi.get('/:id', async (req, res) => {
  *       500:
  *         description: Błąd serwera
  */
-productApi.post('/', async (req, res) => {
+productApi.post('/',verifyToken, async (req, res) => {
     try {
         const { nazwa, opis, cena_jednostkowa, kategoria } = req.body;
 
@@ -185,6 +190,8 @@ productApi.post('/', async (req, res) => {
  * /products/{id}:
  *   put:
  *     summary: Aktualizuj produkt po ID (MongoDB _id)
+ *     security:
+ *      - bearerAuth: []
  *     tags: [Produkty]
  *     parameters:
  *       - in: path
@@ -220,7 +227,7 @@ productApi.post('/', async (req, res) => {
  *       500:
  *         description: Błąd serwera
  */
-productApi.put('/:id', async (req, res) => {
+productApi.put('/:id',verifyToken, async (req, res) => {
     try {
         const produkt = await Produkt.findByIdAndUpdate(req.params.id, req.body, { new: true });
         
@@ -308,14 +315,110 @@ productApi.get('/:id/seo-description', async (req, res) => {
     }
 });
 
-// productApi.post('/app_url/init', XMLHttpRequestUpload.single('file') ,async (req, res) => {
-//     try {
-//         const { app_url } = req.body;
-//         // Tutaj można dodać logikę incjalizacji produktów z pliku podanego w app_url
-//         res.status(StatusCodes.OK).json({ message: `Aplikacja zainicjalizowana pliku: ${app_url}` });
-//     } catch (error) {
-//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
-//     }
-// });
+/**
+ * @swagger
+ * /products/init:
+ *   post:
+ *     summary: Inicjalizuj produkty z pliku CSV lub JSON (tylko jeśli kolekcja jest pusta)
+ *     security:
+ *     - bearerAuth: []
+ *     tags: [Produkty]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Plik CSV lub JSON z danymi produktów
+ *     responses:
+ *       200:
+ *         description: Produkty zostały zainicjalizowane
+ *       400:
+ *         description: Brak pliku do zaimportowania
+ *       403:
+ *         description: Brak uprawnień
+ *       409:
+ *         description: Produkty zostały już zainicjalizowane
+ *       500:
+ *         description: Błąd serwera
+ */
 
+productApi.post('/init', upload.single('file'), verifyToken, async (req, res) => {
+    const filePath = req.file ? req.file.path : null;
+    try {
+        if (!req.file) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Brak pliku do zaimportowania.' });
+        }
+        if (req.user.type !== 'admin' && req.user.type !== 'ADMIN') {
+            return res.status(StatusCodes.FORBIDDEN).json({ error: 'Brak uprawnień.' });
+        }
+        const licznik = await Produkt.countDocuments({});
+        if (licznik > 0) {
+            if (filePath) fs.unlinkSync(filePath);
+            return res.status(StatusCodes.CONFLICT).json({ error: 'Produkty zostały już zainicjalizowane.' });
+        }
+        const wszystkieKategorie = await Kategoria.find({});
+        
+        const znajdzIdKategorii = (nazwaSzukana) => {
+            const kat = wszystkieKategorie.find(k => k.nazwa.toLowerCase() === nazwaSzukana.trim().toLowerCase());
+            if (!kat) throw new Error(`Nie znaleziono kategorii o nazwie: "${nazwaSzukana}"`);
+            return kat._id;
+        };
+
+        let data = fs.readFileSync(filePath, 'utf8');
+        let produktyDoZapisu = [];
+
+        if (req.file.mimetype === 'text/csv' || req.file.mimetype === 'application/vnd.ms-excel') {
+            const lines = data.split(/\r?\n/); 
+            const headers = lines[0].split(','); 
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue; 
+                
+                const values = lines[i].split(',');
+                const produkt = {};
+                
+                headers.forEach((header, index) => {
+                    const czystyHeader = header.trim();
+                    const czystaWartosc = values[index] ? values[index].trim() : '';
+
+                    if (czystyHeader === 'kategoria') {
+                        produkt[czystyHeader] = znajdzIdKategorii(czystaWartosc);
+                    } else {
+                        produkt[czystyHeader] = czystaWartosc;
+                    }
+                });
+                produktyDoZapisu.push(produkt);
+            }
+        } 
+        else if (req.file.mimetype === 'application/json') {
+            const suroweProdukty = JSON.parse(data);
+            
+            produktyDoZapisu = suroweProdukty.map(prod => ({
+                ...prod,
+                kategoria: znajdzIdKategorii(prod.kategoria)
+            }));
+        } else {
+             throw new Error("Nieobsługiwany format pliku");
+        }
+
+        await Produkt.insertMany(produktyDoZapisu);
+        if (filePath) fs.unlinkSync(filePath);
+        const app_url = req.protocol + '://' + req.get('host');
+
+        res.status(StatusCodes.OK).json({ 
+            message: `Aplikacja zainicjalizowana pomyślnie.`,
+            app_url: app_url,
+            dodano: produktyDoZapisu.length
+        });
+
+    } catch (error) {
+        if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
 module.exports = productApi;
