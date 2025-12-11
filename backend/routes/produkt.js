@@ -1,5 +1,5 @@
 const express = require('express');
-const producktApi = express.Router();
+const productApi = express.Router();
 const { StatusCodes } = require('http-status-codes');
 const Produkt = require('../models/models').Produkt;
 const axios = require('axios');
@@ -71,7 +71,7 @@ const { model } = require('mongoose');
  *       500:
  *         description: Błąd serwera
  */
-producktApi.get('/', async (req, res) => {
+productApi.get('/', async (req, res) => {
     try {
         // Populate pobiera też dane kategorii (np. nazwę) zamiast samego ID
         const products = await Produkt.find({}).populate('kategoria');
@@ -106,7 +106,7 @@ producktApi.get('/', async (req, res) => {
  *       500:
  *         description: Błąd serwera
  */
-producktApi.get('/:id', async (req, res) => {
+productApi.get('/:id', async (req, res) => {
     try {
         const product = await Produkt.findById(req.params.id).populate('kategoria');
         if (product) {
@@ -162,7 +162,7 @@ producktApi.get('/:id', async (req, res) => {
  *       500:
  *         description: Błąd serwera
  */
-producktApi.post('/', async (req, res) => {
+productApi.post('/', async (req, res) => {
     try {
         const { nazwa, opis, cena_jednostkowa, kategoria } = req.body;
 
@@ -220,7 +220,7 @@ producktApi.post('/', async (req, res) => {
  *       500:
  *         description: Błąd serwera
  */
-producktApi.put('/:id', async (req, res) => {
+productApi.put('/:id', async (req, res) => {
     try {
         const produkt = await Produkt.findByIdAndUpdate(req.params.id, req.body, { new: true });
         
@@ -264,7 +264,7 @@ producktApi.put('/:id', async (req, res) => {
  *        description: Błąd serwera
  */
 
-producktApi.get('/:id/seo-description', async (req, res) => {
+productApi.get('/:id/seo-description', async (req, res) => {
     try {
         const produkt = await Produkt.findById(req.params.id).populate('kategoria');
         if (!produkt) {
@@ -308,4 +308,14 @@ producktApi.get('/:id/seo-description', async (req, res) => {
     }
 });
 
-module.exports = producktApi;
+// productApi.post('/app_url/init', XMLHttpRequestUpload.single('file') ,async (req, res) => {
+//     try {
+//         const { app_url } = req.body;
+//         // Tutaj można dodać logikę incjalizacji produktów z pliku podanego w app_url
+//         res.status(StatusCodes.OK).json({ message: `Aplikacja zainicjalizowana pliku: ${app_url}` });
+//     } catch (error) {
+//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+//     }
+// });
+
+module.exports = productApi;

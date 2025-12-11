@@ -7,6 +7,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('swagger-jsdoc');
 const mongoose = require('mongoose');
 app.use(express.json()); 
+
 // podłączenie pliku api 
 const apiRouter = require('./routes/api');
 app.use('/api' ,apiRouter);
@@ -28,12 +29,17 @@ const options = {
       version: '1.0.0', 
       description: 'Dokumentacja API dla serwera Express z Mongoose',
     },
-    servers: [
-      {
-        url: url, 
-        description: 'Serwer lokalny',
+    servers: [{url: url, description: 'Serwer lokalny', }],
+    Components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
       },
-    ],
+    },
+    security: [{ bearerAuth: [] }],
   },
   apis: ['./routes/*.js'], 
 };
