@@ -421,4 +421,39 @@ productApi.post('/init', upload.single('file'), verifyToken, async (req, res) =>
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }
 });
+/**
+ * @swagger
+ * /products/category/{categoryId}:
+ *   get:
+ *     summary: Pobierz produkty według ID kategorii
+ *     tags: [Produkty]
+ *     parameters:
+ *      - in: path
+ *        name: categoryId
+ *        required: true    
+ *        schema:
+ *          type: string
+ *          description: MongoDB ObjectId kategorii
+ *     responses:
+ *      200:
+ *        description: Lista produktów w danej kategorii
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                $ref: '#/components/schemas/Produkt'
+ *      500:
+ *        description: Błąd serwera
+ */
+productApi.get('/category/:categoryId', async (req, res) => {
+    try {
+        const products = await Produkt.find({ kategoria: req.params.categoryId }).populate('kategoria');
+        console.log(products);
+        res.status(StatusCodes.OK).json(products);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    }
+});
+
 module.exports = productApi;
