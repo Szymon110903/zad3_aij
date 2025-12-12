@@ -351,9 +351,11 @@ productApi.post('/init', upload.single('file'), verifyToken, async (req, res) =>
     const filePath = req.file ? req.file.path : null;
     try {
         if (!req.file) {
+            if (filePath) fs.unlinkSync(filePath);
             return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Brak pliku do zaimportowania.' });
         }
         if (req.user.type !== 'admin' && req.user.type !== 'ADMIN') {
+            if (filePath) fs.unlinkSync(filePath);
             return res.status(StatusCodes.FORBIDDEN).json({ error: 'Brak uprawnień.' });
         }
         const licznik = await Produkt.countDocuments({});
@@ -419,6 +421,12 @@ productApi.post('/init', upload.single('file'), verifyToken, async (req, res) =>
     } catch (error) {
         if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+    } finally {
+        try {
+            if (filePath && fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        } catch (err) { 
+            console.error("Błąd przy usuwaniu pliku tymczasowego:", err);
+        }
     }
 });
 /**
