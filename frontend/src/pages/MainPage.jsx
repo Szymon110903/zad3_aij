@@ -4,9 +4,12 @@ import ProductsTable from "../components/productsTable.jsx";
 // import TopNavbar from "../components/TopNavbar.jsx";
 
 function MainPage() {
+    // useState - przechowywanie produktów i stanu ładowania
+    // stan ładowania to informacja czy dane są w trakcie pobierania
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    // useEffect - pobieranie produktów z API po załadowaniu komponentu
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -21,7 +24,6 @@ function MainPage() {
 
         fetchProducts();
     }, []);
-
 
     return (
         <div>
