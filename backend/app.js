@@ -6,7 +6,10 @@ const port = process.env.PORT;
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('swagger-jsdoc');
 const mongoose = require('mongoose');
+const cors = require('cors');
+
 app.use(express.json()); 
+app.use(cors());
 
 // podłączenie pliku api 
 const apiRouter = require('./routes/api');
