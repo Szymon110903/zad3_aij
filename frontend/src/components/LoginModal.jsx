@@ -42,12 +42,12 @@ function LoginModal({ show, onClose, onLoginSuccess }) {
                     left: 0, 
                     width: '100%', 
                     height: '100%', 
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)' // Nieco jaśniejsze, eleganckie przyciemnienie
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)' 
                 }} 
                 onClick={onClose}
             ></div>
 
-            {/* OKNO MODALA */}
+            {/* MODAL */}
             <div 
                 className="modal fade show" 
                 tabIndex="-1"
