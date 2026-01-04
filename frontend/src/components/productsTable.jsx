@@ -1,13 +1,15 @@
 import React from "react";
 import ProductRow from "./productsRow";
-function ProductsTable ({ products}) {
+import ActionAddToCart from "./ActionAddToCart";
+    
+function ProductsTable ({ products, ActionElement = ActionAddToCart }) {
     return (
         <table>
           
             <tbody>
                 {products.length > 0 ? (
                  products.map((product) => (
-                    <ProductRow key={product._id} product={product} />
+                    <ProductRow key={product._id} product={product} ActionElement={ActionElement} />
                 ))
                 ) : (
                 <tr>

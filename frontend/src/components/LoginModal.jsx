@@ -21,6 +21,9 @@ function LoginModal({ show, onClose, onLoginSuccess }) {
             });
 
             localStorage.setItem('token', response.data.token);
+            localStorage.setItem('username', username);
+            localStorage.setItem('userId', response.data._id);
+            localStorage.setItem('type', response.data.type);
             onLoginSuccess();
             onClose();
         } catch (err) {

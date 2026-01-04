@@ -20,14 +20,20 @@ function MainPage() {
 
             try {
                 let url = '/products';
-                console.log("Wybrana kategoria:", category.nazwa);
                 // Obsługa kategorii
                 if (category.nazwa && category.nazwa !== 'Wszystkie') {
                     url = `/products/category/${category._id}`;
                 }
                 const response = await api.get(url);
-                
-                setProdukty(response.data);
+                // Filtrowanie według wyszukiwania
+                if (searchText && searchText.trim() !== '') {
+                    const filteredProducts = response.data.filter(product => 
+                        product.nazwa.toLowerCase().includes(searchText.toLowerCase())
+                    );
+                    setProdukty(filteredProducts);
+                } else {
+                    setProdukty(response.data);
+                }
             } catch (err) {
                 console.error(err);
                 setError('Nie udało się pobrać produktów.');

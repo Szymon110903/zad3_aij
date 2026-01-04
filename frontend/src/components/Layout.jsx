@@ -16,7 +16,6 @@ function Layout() {
     useEffect(() => {
         api.get('/category')
             .then(res => {
-                console.log("PEŁNA ODPOWIEDŹ API:", res);
                 setKategorie(res.data);})
             .catch(err => console.error("Błąd kategorii:", err));
     }, []);

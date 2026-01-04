@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 
 import Layout from './components/Layout';
 import MainPage from './pages/MainPage';
+import CartPage from './pages/CartPage';
+
 
 function App() {
   return (
@@ -24,12 +26,7 @@ function App() {
               </div>
           } />
 
-          <Route path="koszyk" element={
-              <div className="text-center mt-5">
-                  <h2>Koszyk</h2>
-                  <p className="text-muted">Twój koszyk jest pusty (na razie).</p>
-              </div>
-          } />
+          <Route path="koszyk" element={<CartPage />} />
 
         </Route>
     </Routes>

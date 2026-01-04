@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {useCart} from "../context/CartContext.jsx";
+import { Link } from 'react-router-dom';
 
 function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
     const navigate = useNavigate();
@@ -12,6 +14,9 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     
     const isLoggedIn = !!localStorage.getItem('token');
+
+    const { cartItems } = useCart();
+    let cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
     const handleSelect = (kategoriaName) => {
         setSelectedCategory(kategoriaName);
@@ -39,16 +44,29 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
 
     return (
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4 py-3 shadow">
-            <div className="container d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between">
+            <div className="container d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between ">
 
                 {/* WYSZUKIWANIe  */}
                 <div className="order-2 order-lg-1 w-100 flex-grow-1 mt-3 mt-lg-0 me-lg-4">
                     <div className="input-group shadow-sm rounded-pill bg-white" style={{ height: '50px' }}>
-                        
-                        {/* KATEGORIE (Naprawione ręczne otwieranie) */}
+
+                        {/* KATEGORIE  */}
                         <div className="position-relative d-flex align-items-center">
+                            <Link 
+                                to="/" 
+                                className="btn border-0 rounded-start-pill fw-bold text-secondary d-flex align-items-center bg-transparent px-3 mb-2"
+                                style={{ 
+                                    borderRight: '1px solid #dee2e6', // Ta sama linia oddzielająca co w Twoim kodzie
+                                    height: '100%',
+                                    textDecoration: 'none' // Usuwa podkreślenie linku
+                                }}
+                            >
+                                {/* Opcjonalnie możesz dodać ikonę, np. Bootstrap Icons */}
+                                <i className="bi bi-shop me-2"></i> 
+                                Sklep
+                            </Link>
                             <button 
-                                className="btn dropdown-toggle rounded-start-pill px-3 border-0 fw-bold text-secondary d-flex align-items-center bg-transparent" 
+                                className="btn dropdown-toggle px-3 border-0 fw-bold text-secondary d-flex align-items-center bg-transparent mb-2" 
                                 type="button" 
                                 onClick={() => setShowCategoryMenu(!showCategoryMenu)}
                                 onBlur={() => setTimeout(() => setShowCategoryMenu(false), 200)}
@@ -107,11 +125,11 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
                                 onChange={handleSearchChange}
                                 style={{ height: '100%' }} 
                             />
-                            <label htmlFor="floatingSearch" className="ps-4 text-muted">
+                            <label htmlFor="floatingSearch" className="ps-4 text-muted mb-2">
                                 Szukaj produktu...
                             </label>
                             {searchText && searchText.length > 0 && (
-                                <button type="button" className="btn border-0 position-absolute top-50 end-0 translate-middle-y me-3 text-muted" style={{ zIndex: 10 }} onClick={clearSearch}>✕</button>
+                                <button type="button" className="btn border-0 position-absolute top-50 end-0 translate-middle-y me-3 text-muted mb-2" style={{ zIndex: 10 }} onClick={clearSearch}>✕</button>
                             )}
                         </div>
                     </div>
@@ -157,8 +175,14 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
                                     
                                     <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
                                         onMouseDown={() => navigate('/koszyk')}
-                                    >
-                                        Koszyk
+                                    > 
+                                        Koszyk {' '}
+                                        {cartItemsCount > 0 && (
+                                            <span className="badge bg-primary rounded-pill">
+                                                {cartItemsCount}
+                                            </span>
+                                        )}
+
                                     </button>
 
                                     <div className="dropdown-divider my-2"></div>
