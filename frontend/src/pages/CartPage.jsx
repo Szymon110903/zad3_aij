@@ -1,6 +1,6 @@
 import React from "react";
 import { useCart } from "../context/CartContext.jsx";
-import ProductsTable from "../components/ProductsTable.jsx";
+import ProductsTable from "../components/productsTable.jsx";
 import ActionOrder from "../components/ActionOrder.jsx";
 
 function CartPage() {
@@ -13,7 +13,7 @@ function CartPage() {
             <div className="card shadow-lg">
                 <div className="card-body p-4">
 
-                        <ProductsTable products={cartItems} ActionElement={ActionOrder} />
+                    <ProductsTable products={cartItems} ActionElement={ActionOrder} />
             </div>
             </div>
             </div>

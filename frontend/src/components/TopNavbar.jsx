@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {useCart} from "../context/CartContext.jsx";
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
     const navigate = useNavigate();
-    
+    const { user, logout, setShowLoginModal } = useAuth();
     const [searchText, setSearchText] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Wszystkie');
     
@@ -27,7 +28,7 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
     // Obsługa wylogowania
     const handleLogout = () => {
         localStorage.removeItem('token'); 
-        window.location.reload(); 
+        window.location.href = '/';
     };
 
     // Obsługa wyszukiwania

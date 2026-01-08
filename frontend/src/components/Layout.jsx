@@ -2,7 +2,7 @@
 import api from "../api/axios";
 import React, {useEffect, useState} from "react";
 import { Outlet } from "react-router-dom"; 
-
+import { useAuth } from "../context/AuthContext.jsx";
 
 import TopNavbar from "./TopNavbar";
 import LoginModal from "./LoginModal";
@@ -11,7 +11,7 @@ function Layout() {
     const [searchText, setSearchText] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState('Wszystkie');
     const [kategorie, setKategorie] = useState([]);
-
+    
     //pobranie kategorii
     useEffect(() => {
         api.get('/category')
@@ -25,6 +25,7 @@ function Layout() {
         setShowLoginModal(false);
         window.location.reload(); 
     };
+
     return (
         <div>
             <TopNavbar 

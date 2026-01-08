@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import api from '../api/axios';
+import {useAuth} from "../context/AuthContext.jsx";
+
 
 function LoginModal({ show, onClose, onLoginSuccess }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const { login } = useAuth();
 
     if (!show) return null;
 
@@ -19,13 +23,9 @@ function LoginModal({ show, onClose, onLoginSuccess }) {
                 username: username,
                 password: password
             });
-
-            localStorage.setItem('token', response.data.token);
-            localStorage.setItem('username', username);
-            localStorage.setItem('userId', response.data._id);
-            localStorage.setItem('type', response.data.type);
+            const token = response.data.token;
+            login(token);
             onLoginSuccess();
-            onClose();
         } catch (err) {
             setError(err.response?.data?.message || 'Błąd logowania');
         } finally {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom'; 
 import api from '../api/axios';
-import ProductsTable from '../components/ProductsTable';
+import ProductsTable from '../components/productsTable';
 
 function MainPage() {
     //pobranie danych z Layoutu
