@@ -15,11 +15,13 @@ api.interceptors.request.use(config => {
 });
 
 api.interceptors.response.use(
-  response =>  response,
+  response => response,
   error => {
-    if (error.response && error.response.status === 401) {
+    const isAuthRequest = error.config.url.includes('/auth/login') || error.config.url.includes('/auth/register');
+
+    if (error.response && error.response.status === 401 && !isAuthRequest) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }

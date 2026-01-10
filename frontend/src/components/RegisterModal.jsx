@@ -1,32 +1,36 @@
+// src/components/RegisterModal.jsx
 import React, { useState } from 'react';
-import api from '../api/axios';
-import {useAuth} from "../context/AuthContext.jsx";
+import api from '../api/axios'; // Twój axios
+import { useAuth } from '../context/AuthContext';
 
-function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
+function RegisterModal({ show, onClose, onSwitchToLogin }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
-
-    const { login } = useAuth();
-
+    const type = 'CUSTOMER';
     if (!show) return null;
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); 
-        setLoading(true); 
+        e.preventDefault();
+        setLoading(true);
         setError('');
 
         try {
-            const response = await api.post('/auth/login', {
-                username: username,
-                password: password
+            await api.post('/auth/register', {
+                username,
+                password,
+                type
             });
-            const token = response.data.token;
-            login(token);
-            onLoginSuccess();
+            
+            setSuccess(true);
+            setTimeout(() => {
+                onSwitchToLogin();
+            }, 2000);
+
         } catch (err) {
-            setError(err.response?.data?.message || 'Błąd logowania');
+            setError(err.response?.data?.message || 'Błąd rejestracji');
         } finally {
             setLoading(false);
         }
@@ -34,7 +38,6 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
 
     return (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 9999 }}>
-            
             {/* TŁO */}
             <div 
                 className="modal-backdrop show" 
@@ -50,7 +53,7 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
             ></div>
 
             {/* MODAL */}
-            <div 
+             <div 
                 className="modal fade show" 
                 tabIndex="-1"
                 style={{ 
@@ -63,7 +66,7 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
                     <div className="modal-content shadow-lg border-0"> 
                         <div className="modal-header border-bottom-0 pb-0 bg-dark"> 
                             <h5 className="modal-title w-100 text-center fw-bold fs-4 text-white mb-3">
-                                Zaloguj się
+                                Zarejestruj sie
                             </h5>
                             
                             <button 
@@ -72,37 +75,38 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
                                 onClick={onClose}
                             ></button>
                         </div>
-
                         <div className="modal-body p-4 pt-3">
-
-                            {error && <div className="alert alert-danger">{error}</div>}
                             
-                            <form onSubmit={handleSubmit}>
-                                <div className="mb-3">
-                                    <label className="form-label fw-bold small text-muted">NAZWA UŻYTKOWNIKA</label>
-                                    <input
-                                        type="text"
-                                        className="form-control border-dark" 
-                                        value={username}
-                                        onChange={e => setUsername(e.target.value)}
-                                        required
-                                        placeholder="Nazwa użytkownika" 
-                                        autoFocus
-                                    />
+                            {success ? (
+                                <div className="alert alert-success text-center">
+                                    Konto utworzone! <br/> Przejdź do logowania
                                 </div>
-                                <div className="mb-4">
-                                    <label className="form-label fw-bold small text-muted">HASŁO</label>
-                                    <input 
-                                        type="password" 
-                                        className="form-control border-dark" 
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        required
-                                        placeholder="Hasło"
-                                    />
-                                </div>
-                                
-                                <div className="d-grid mt-4">
+                            ) : (
+                                <form onSubmit={handleSubmit}>
+
+                                    {error && <div className="alert alert-danger">{error}</div>}
+                                    
+                                    <div className="mb-3">
+                                        <label className="form-label fw-bold small text-muted">NAZWA UŻYTKOWNIKA</label>
+                                        <input 
+                                            type="text" 
+                                            className="form-control border-dark" 
+                                            placeholder="Nazwa użytkownika" 
+                                            value={username} 
+                                            onChange={e => setUsername(e.target.value)}
+                                            required />
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="form-label fw-bold small text-muted">HASŁO</label>
+                                        <input 
+                                            type="password" 
+                                            className="form-control border-dark" 
+                                            placeholder="Hasło" value={password} 
+                                            onChange={e => setPassword(e.target.value)} 
+                                            required />
+                                    </div>
+
+                                    <div className="d-grid mt-4">
                                     <button 
                                         type="submit" 
                                         className="btn btn-outline-dark btn-lg py-2 fw-bold" 
@@ -111,26 +115,26 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
                                         {loading ? (
                                             <>
                                                 <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                Logowanie
+                                                Rejestracja...
                                             </>
-                                        ) : 'Zaloguj się'}
+                                        ) : 'Utwórz konto'}
                                     </button>
                                 </div>
-                            </form>
+                                </form>
+                            )}
+
                             <div>
                                 <p className="text-center small text-muted mt-3">
-                                    Nie masz konta? 
+                                    Masz już konto? 
                                     <br/>
                                     <button className="btn btn-link text-decoration-none p-0 ms-1"
-                                        onClick={() => {
-                                        onSwitchToRegister();}}
+                                        onClick={onSwitchToLogin}
                                     >
-                                        Zarejestruj się
+                                        Zaloguj sie!
                                     </button>
                                 </p>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
             </div>
@@ -138,4 +142,4 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
     );
 }
 
-export default LoginModal;
+export default RegisterModal;

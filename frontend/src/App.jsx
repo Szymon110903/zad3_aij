@@ -6,22 +6,48 @@ import MainPage from './pages/MainPage';
 import CartPage from './pages/CartPage';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LoginModal from './components/LoginModal.jsx';
+import RegisterModal from './components/RegisterModal.jsx';
 
-const GlobalLoginModal = () => {
-    const { showLoginModal, setShowLoginModal} = useAuth();
-    return (
-        <LoginModal 
-            show={showLoginModal} 
-            handleClose={() => setShowLoginModal(false)} 
-        />
+
+const GlobalModals = () => {
+    const { showLoginModal, setShowLoginModal,
+            showRegisterModal, setShowRegisterModal
+    } = useAuth();
+    const handleSwitchToRegister = () => {
+        setShowLoginModal(false);   
+        setShowRegisterModal(true); 
+    };
+
+    const handleSwitchToLogin = () => {
+        setShowRegisterModal(false);
+        setShowLoginModal(true);
+    };
+
+    return ( 
+        <>
+            <LoginModal 
+                show={showLoginModal} 
+                onClose={() => setShowLoginModal(false)} 
+                onSwitchToRegister={handleSwitchToRegister}     
+            />
+            
+            <RegisterModal 
+                show={showRegisterModal} 
+                onClose={() => setShowRegisterModal(false)}
+                onSwitchToLogin={handleSwitchToLogin}
+            />
+        </>
     );
+  
+
+
 }
 
 
 function App() {
   return (
     <AuthProvider>
-      <GlobalLoginModal />
+      <GlobalModals />
     <Routes>
         {/* publiczne*/}
         <Route path="/" element={<Layout />}>

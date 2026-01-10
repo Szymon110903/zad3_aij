@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {useCart} from "../context/CartContext.jsx";
+import { useCart } from "../context/CartContext.jsx";
 import { Link } from 'react-router-dom';
+// 1. Używamy Contextu
 import { useAuth } from '../context/AuthContext.jsx';
 
-function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
+// Usuń 'onOpenLogin' z propsów - nie jest już potrzebny
+function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
     const navigate = useNavigate();
+    
+    // 2. Pobieramy wszystko co potrzebne z Contextu
     const { user, logout, setShowLoginModal } = useAuth();
+    
     const [searchText, setSearchText] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Wszystkie');
-    
     const [showCategoryMenu, setShowCategoryMenu] = useState(false);
-    
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     
-    const isLoggedIn = !!localStorage.getItem('token');
-
     const { cartItems } = useCart();
     let cartItemsCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 
@@ -25,13 +26,6 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
         setShowCategoryMenu(false); 
     };
 
-    // Obsługa wylogowania
-    const handleLogout = () => {
-        localStorage.removeItem('token'); 
-        window.location.href = '/';
-    };
-
-    // Obsługa wyszukiwania
     const handleSearchChange = (e) => {
         const value = e.target.value;
         setSearchText(value);
@@ -47,22 +41,21 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
         <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4 py-3 shadow">
             <div className="container d-flex flex-wrap flex-lg-nowrap align-items-center justify-content-between ">
 
-                {/* WYSZUKIWANIe  */}
+                {/* WYSZUKIWANIE */}
                 <div className="order-2 order-lg-1 w-100 flex-grow-1 mt-3 mt-lg-0 me-lg-4">
                     <div className="input-group shadow-sm rounded-pill bg-white" style={{ height: '50px' }}>
 
-                        {/* KATEGORIE  */}
+                        {/* KATEGORIE */}
                         <div className="position-relative d-flex align-items-center">
                             <Link 
                                 to="/" 
                                 className="btn border-0 rounded-start-pill fw-bold text-secondary d-flex align-items-center bg-transparent px-3 mb-2"
                                 style={{ 
-                                    borderRight: '1px solid #dee2e6', // Ta sama linia oddzielająca co w Twoim kodzie
+                                    borderRight: '1px solid #dee2e6', 
                                     height: '100%',
-                                    textDecoration: 'none' // Usuwa podkreślenie linku
+                                    textDecoration: 'none' 
                                 }}
                             >
-                                {/* Opcjonalnie możesz dodać ikonę, np. Bootstrap Icons */}
                                 <i className="bi bi-shop me-2"></i> 
                                 Sklep
                             </Link>
@@ -83,11 +76,7 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
                                 <ul 
                                     className="dropdown-menu show" 
                                     style={{ 
-                                        position: 'absolute', 
-                                        top: '100%', 
-                                        left: 0, 
-                                        marginTop: '5px',
-                                        zIndex: 1000 
+                                        position: 'absolute', top: '100%', left: 0, marginTop: '5px', zIndex: 1000 
                                     }}
                                 >
                                     <li>
@@ -136,23 +125,20 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
                     </div>
                 </div>
 
-                {/*  PROFIL / LOGOWANIE */}
                 <div className="d-flex align-items-center ms-auto order-1 order-lg-2">
-                    {isLoggedIn ? (
+                    
+                    {user ? (
                         <div className="position-relative">
-                            {/* Przycisk Profilu */}
                             <button 
                                 className="btn btn-outline-light d-flex align-items-center gap-2 border-0"
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 onBlur={() => setTimeout(() => setShowProfileMenu(false), 200)}
                             >
                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#adb5bd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    
                                 </div>
                                 <span className="d-none d-md-inline">Profil</span>
                             </button>
 
-                            {/* Menu Profilu */}
                             {showProfileMenu && (
                                 <div 
                                     className="dropdown-menu show position-absolute end-0 mt-2 shadow-lg border-0 rounded-4 p-2" 
@@ -183,12 +169,12 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
                                                 {cartItemsCount}
                                             </span>
                                         )}
-
                                     </button>
 
                                     <div className="dropdown-divider my-2"></div>
+                                    
                                     <button className="dropdown-item fw-bold text-danger rounded-2 py-2" 
-                                        onMouseDown={handleLogout}
+                                        onMouseDown={logout}
                                     >
                                         Wyloguj się
                                     </button>
@@ -198,7 +184,7 @@ function TopNavbar({ kategorie, onSearch, onOpenLogin, onCategorySelect }) {
                     ) : (
                         <button 
                             className="btn btn-primary fw-bold px-4 shadow-sm text-nowrap"
-                            onClick={onOpenLogin} 
+                            onClick={() => setShowLoginModal(true)} 
                         >
                             Zaloguj się
                         </button>

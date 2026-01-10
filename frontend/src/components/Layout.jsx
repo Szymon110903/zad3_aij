@@ -12,19 +12,14 @@ function Layout() {
     const [selectedCategory, setSelectedCategory] = React.useState('Wszystkie');
     const [kategorie, setKategorie] = useState([]);
     
-    //pobranie kategorii
+    // Pobranie kategorii
     useEffect(() => {
         api.get('/category')
             .then(res => {
-                setKategorie(res.data);})
+                setKategorie(res.data);
+            })
             .catch(err => console.error("Błąd kategorii:", err));
     }, []);
-    const [showLoginModal, setShowLoginModal] = useState(false);
-
-    const handleLoginSuccess = () => {
-        setShowLoginModal(false);
-        window.location.reload(); 
-    };
 
     return (
         <div>
@@ -32,17 +27,12 @@ function Layout() {
                 kategorie={kategorie}
                 onSearch={setSearchText}
                 onCategorySelect={setSelectedCategory}
-                onOpenLogin={() => setShowLoginModal(true)}
             />
-           <div className="container mt-4">
-            <Outlet context={{ category: selectedCategory, searchText: searchText }} />
             
+            <div className="container mt-4">
+                <Outlet context={{ category: selectedCategory, searchText: searchText }} />
             </div>
-            <LoginModal 
-                show={showLoginModal} 
-                onClose={() => setShowLoginModal(false)}
-                onLoginSuccess={handleLoginSuccess}
-            />
+
         </div>
     );
 }

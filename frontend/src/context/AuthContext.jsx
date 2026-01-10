@@ -6,7 +6,10 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(localStorage.getItem('token'));
     const [showLoginModal, setShowLoginModal] = useState(false);
-    
+
+    const [showRegisterModal, setShowRegisterModal] = useState(false);
+
+
     const navigate = useNavigate(); 
 
     const login = (token) => {
@@ -18,11 +21,11 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
     localStorage.removeItem('token');
     window.location.href = '/'; 
-    
 };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, showLoginModal, setShowLoginModal }}>
+        <AuthContext.Provider value={{ user, login, logout, showLoginModal, setShowLoginModal, showRegisterModal, 
+            setShowRegisterModal }}>
             {children}
         </AuthContext.Provider>
     );
