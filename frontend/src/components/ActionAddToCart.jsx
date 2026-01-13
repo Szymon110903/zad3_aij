@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import Alert from "./alert.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import CounterButtons from "./CounterButtons.jsx";
 
 function ActionAddToCart({ product}) {
     const [licznik, setLicznik] = useState(Number(0));
@@ -35,26 +36,13 @@ function ActionAddToCart({ product}) {
         }, 3000);
     };
 
-    const HandleIncrement = () => {
-        setLicznik(licznik + 1);
-    };
-
-    const HandleDecrement = () => {
-        if (licznik > 0) {
-            setLicznik(licznik - 1);
-        }
-    };
     return (
         <div>
-            <button className="btn btn-outline-dark btn-sm"
-                onClick={HandleDecrement}
-            >&lt;</button>
-            <button className="btn btn-outline-dark btn-sm" 
-                onChange={(e) => setLicznik(Number(e.target.value))}
-            >{licznik}</button>
-            <button className="btn btn-outline-dark btn-sm" 
-                onClick={HandleIncrement}
-            >&gt;</button>
+          
+            <CounterButtons 
+                value = {licznik}
+                onChange={setLicznik}
+             />
              <button className="btn btn-primary btn-sm"
                 onClick={HandleAddToCart}
             >Dodaj do koszyka</button>

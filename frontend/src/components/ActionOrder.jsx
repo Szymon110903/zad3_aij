@@ -1,10 +1,26 @@
+import { useCart } from "../context/CartContext.jsx";
+import React from "react";
+import CounterButtons from "./CounterButtons.jsx";
 
 function ActionOrder({ product }) {
+    const {removeFromCart, updateQuantity } = useCart();
+
+    const handleQuantityChange = (newVal) => {
+        if (newVal <1) return;
+        updateQuantity(product._id, newVal);
+    }
+    const handleRemoveFromCart = () => {
+        removeFromCart(product._id);
+    }
     return (
         <div>
-            <button className="btn btn-success btn-sm"
-                onClick={() => alert(`Zamówiono ${product.nazwa}`)}
-            >Zamów</button>
+            <CounterButtons
+            value={product.quantity}
+            onChange={handleQuantityChange}
+            />
+            <button onClick={handleRemoveFromCart}>
+                usuń
+            </button>
         </div>
     )
 }

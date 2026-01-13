@@ -7,7 +7,7 @@ import CartPage from './pages/CartPage';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LoginModal from './components/LoginModal.jsx';
 import RegisterModal from './components/RegisterModal.jsx';
-
+import OrderPage from './pages/OrderPage.jsx';
 
 const GlobalModals = () => {
     const { showLoginModal, setShowLoginModal,
@@ -54,7 +54,8 @@ function App() {
           <Route index element={<MainPage />} />
           {/* chronione */}
           <Route element={<RouteProtect><Outlet /></RouteProtect>}>
-              <Route path="koszyk" element={<CartPage />} />
+              <Route path="koszyk" element={<CartPage/>} />
+              <Route path="Zamowienie" element = {<OrderPage/>}/>
               <Route path="profile" element={
                   <div className="text-center mt-5">
                       <h2> Twój Profil</h2>
