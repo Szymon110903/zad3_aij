@@ -14,6 +14,12 @@ const opiniaSchema = new Schema({
     },
     komentarz : { type: String }
 });
+const zamieszkanieSchema = new Schema({
+  miejscowosc: {type: String, required: true},
+  kod_pocztowy: {type: String, required: true},
+  ulica: {type: String, required: true},
+  nrDomu: {type: String, required: true}
+}, {timestamps: false} );
 
 const pozycjaZamowieniaSchema = new Schema({
   produkt: {
@@ -32,7 +38,7 @@ const pozycjaZamowieniaSchema = new Schema({
   },
   stawkaVat: { type: Number, default: 23 },
   rabat: { type: Number, default: 0 }
-});
+}, {timestamps: false});
 
 const zamowienieSchema = new Schema({
   dataZatwierdzenia: {type: Date, default: null},
@@ -40,11 +46,14 @@ const zamowienieSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'StanZamowienia', required: true },
   nazwaUzytkownika: { type: String, required: true },
+  imie: { type: String, required: true },
+  nazwisko: { type: String, required: true },
   email: { type: String, required: true },
   telefon: { type: String, required: true },
   pozycje: { type: [pozycjaZamowieniaSchema], required: true },
   sumaCalkowita: { type: Number },
-  opinia: { type: opiniaSchema, default: null, required: false }
+  opinia: { type: opiniaSchema, default: null, required: false },
+  zamieszkanie: {type: zamieszkanieSchema, required: true}
 }, {
   timestamps: false, collection: 'Zamowienia'
 });

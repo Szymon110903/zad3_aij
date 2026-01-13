@@ -23,7 +23,7 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
                 password: password
             });
             const token = response.data.token;
-            login(token);
+            login(token, username);
             onLoginSuccess();
         } catch (err) {
             setError(err.response?.data?.message || 'Błąd logowania');

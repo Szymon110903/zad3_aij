@@ -1,15 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext.jsx";
 import { useNavigate } from "react-router-dom";
 import ProductsTable from "../components/productsTable.jsx"; 
 import ActionOrder from "../components/ActionOrder.jsx";
+import api from "../api/axios.js";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function OrderPage() {
+    const { username} = useAuth();
+    console.log(username);
     const { cartItems } = useCart();
     const navigate = useNavigate();
-
+    const [Loading, setLoading] = useState(false);
+    const [idStatusu, setidStatusu] = useState(null);
     const [recipient, setRecipient] = useState({
-        username: "",
+        firstname: "",
+        lastname: "",
         email: "",
         phone: "",
         city: "",
@@ -33,8 +39,10 @@ function OrderPage() {
     const validate = () => {
         const newErrors = {};
         
-        if (!recipient.username.trim()) newErrors.username = "Nazwa jest wymagana.";
-        
+        if (!recipient.firstname.trim()) newErrors.firstname = "Imie jest wymagane.";
+
+        if (!recipient.lastname.trim()) newErrors.lastname = "Nazwisko jest wymagane.";
+
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!recipient.email) newErrors.email = "Email jest wymagany.";
         else if (!emailRegex.test(recipient.email)) newErrors.email = "Błędny format email.";
@@ -46,7 +54,6 @@ function OrderPage() {
         if (!recipient.city.trim()) {
             newErrors.city = "Miejscowość jest wymagana.";
         }
-
         const postalRegex = /^[0-9]{2}-[0-9]{3}$/;
         if (!recipient.postal_number) {
             newErrors.postal_number = "Kod pocztowy jest wymagany.";
@@ -63,14 +70,76 @@ function OrderPage() {
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
+    
+     useEffect(() => {
+        const pobierzStatusy = async () => {
+            setLoading(true);
 
-    const handleSubmit = () => {
-        if (validate()) {
-            console.log("Wysyłanie zamówienia:", { recipient, products: cartItems, total: totalOrderValue });
-            alert("Zamówienie przyjęte!");
-            navigate('/');
-        } else {
+            try {
+                let url = '/orders/status';
+                const response = await api.get(url);
+                const statusNiezatwierdzony = response.data.find(
+                    item => item.nazwa === 'NIEZATWIERDZONE'
+                    );
+                const idStatusu = statusNiezatwierdzony ? statusNiezatwierdzony._id : null;
+                setidStatusu(idStatusu);
+            } catch (err) {
+                console.error(err);
+                setError('Nie udało się pobrać statusów.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        pobierzStatusy();
+
+    }, []); 
+    
+    const handleSubmit = async () => {
+        if (!validate()) {
             alert("Popraw błędy w formularzu.");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const zmapowanyKoszyk = cartItems.map(item => ({
+                produkt: item._id,
+                ilosc: Number(item.quantity),
+                cenaWChwiliZakupu: parseFloat(item.cena_jednostkowa), 
+                stawkaVat: 23,
+                rabat: 0
+            }));
+
+            const order = {
+                stan: idStatusu,
+                nazwaUzytkownika: username,
+                imie: recipient.firstname,
+                nazwisko: recipient.lastname,
+                email: recipient.email,
+                telefon: recipient.phone,
+                pozycje: zmapowanyKoszyk,
+                sumaCalkowita: Number(totalOrderValue),
+                zamieszkanie: {
+                    miejscowosc: recipient.city,
+                    kod_pocztowy: recipient.postal_number,
+                    ulica: recipient.street,
+                    nrDomu: recipient.number
+                }
+            };
+
+            const response = await api.post('/orders', order); 
+            alert("Zamówienie złożone pomyślnie!");
+            
+            // if (clearCart) clearCart(); 
+            navigate('/'); 
+
+        } catch (err) {
+            console.error(" Błąd wysyłania:", err);
+            const serverMessage = err.response?.data?.error || err.response?.data?.message || err.message;
+            alert(`Błąd składania zamówienia:\n${serverMessage}`);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -93,10 +162,16 @@ function OrderPage() {
                                 <h6 className="text-muted text-uppercase small fw-bold mb-3">Kontakt</h6>
                                 
                                 <div className="mb-3">
-                                    <label className="form-label">Imię i Nazwisko</label>
-                                    <input type="text" className={`form-control ${errors.username ? 'is-invalid' : ''}`}
-                                        name="username" value={recipient.username} onChange={handleChange} />
-                                    {errors.username && <div className="invalid-feedback">{errors.username}</div>}
+                                    <label className="form-label">Imię</label>
+                                    <input type="text" className={`form-control ${errors.firstname ? 'is-invalid' : ''}`}
+                                        name="firstname" value={recipient.firstname} onChange={handleChange} />
+                                    {errors.firstname && <div className="invalid-feedback">{errors.firstname}</div>}
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label">Nazwisko</label>
+                                    <input type="text" className={`form-control ${errors.lastname ? 'is-invalid' : ''}`}
+                                        name="lastname" value={recipient.lastname} onChange={handleChange} />
+                                    {errors.lastname && <div className="invalid-feedback">{errors.lastname}</div>}
                                 </div>
 
                                 <div className="row">
