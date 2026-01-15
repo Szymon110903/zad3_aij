@@ -12,7 +12,7 @@ function OrdersPage(){
     const [Error, setError] = useState(''); 
     const [Orders, setOrders] = useState([]);
 
-
+    //pobieranie zamówień 
      useEffect(() => {
         if (!username) return;
         const pobierzZamówienia = async () => {
@@ -29,7 +29,6 @@ function OrdersPage(){
                 setLoading(false);
             }
         };
-
         pobierzZamówienia();
     }, [username]); 
 
@@ -39,7 +38,6 @@ function OrdersPage(){
             <div className="card shadow-lg">
                 <div className="card-body p-4">
 
-                    {/* Obsługa błędów i ładowania */}
                     {Error && <div className="alert alert-danger">{Error}</div>}
                     
                     {Loading ? (
