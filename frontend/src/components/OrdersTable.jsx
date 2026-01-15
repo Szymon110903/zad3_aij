@@ -1,5 +1,5 @@
 import React from "react";
-function OrderTable ({ orders }) {
+function OrdersTable ({ orders }) {
     return (
         <table>
             <tbody>
@@ -18,4 +18,4 @@ function OrderTable ({ orders }) {
         </table>
     )
 }
-export default OrderTable;
+export default OrdersTable;
