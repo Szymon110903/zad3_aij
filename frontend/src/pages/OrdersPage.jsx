@@ -1,8 +1,8 @@
 
 import React, {useEffect, useState} from "react";
-import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import OrdersTable from "../components/OrdersTable";
+import orderService from "../services/orderService";
 
 
 function OrdersPage(){
@@ -15,15 +15,13 @@ function OrdersPage(){
 
      useEffect(() => {
         if (!username) return;
-        //pobieranie zamówenia po username
         const pobierzZamówienia = async () => {
             setLoading(true);
             setError('');
 
             try {
-                let url = '/orders/' + username;
-                const response = await api.get(url);
-                setOrders(response.data);
+                const response = await orderService.getUserOrders(username);
+                setOrders(response);
             } catch (err) {
                 console.error(err);
                 setError('Nie udało się pobrać zamowien.');
@@ -33,9 +31,9 @@ function OrdersPage(){
         };
 
         pobierzZamówienia();
-
     }, [username]); 
-    
+
+
     return (
          <div className="container mt-4">
             <div className="card shadow-lg">

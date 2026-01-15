@@ -4,6 +4,7 @@ const api = axios.create({
   baseURL: 'http://localhost:3000/api', 
 });
 
+// interceptor żądań - przed wysyłaniem zapytania sprawdza w localStorage i jeśli jest to dokleja go do nagłówka
 api.interceptors.request.use(config => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -14,6 +15,7 @@ api.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
+// intercetor odpowiedzi - globalne obsłużenie 401 - wygasły token, jeśli nie jest zautoryzowany to usuwa token z localStorage
 api.interceptors.response.use(
   response => response,
   error => {

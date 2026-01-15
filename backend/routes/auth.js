@@ -114,7 +114,11 @@ userApi.post('/login', async (req, res) => {
             type: user.type }, 
             process.env.JWT_SECRET, { expiresIn: '1h' });
         
-        res.status(StatusCodes.OK).json({ token: token });
+        res.status(StatusCodes.OK).json({
+            token: token,
+            username: user.username,
+            type: user.type
+         });
     }catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
     }

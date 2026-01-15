@@ -1,4 +1,3 @@
-import React from "react"
 function ProductsRow({ product, ActionElement }) {
     const quantity = product.quantity || 0;
     const totalRowPrice = (product.cena_jednostkowa * quantity).toFixed(2);

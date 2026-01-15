@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import api from '../api/axios';
+import React, { useState, useEffect } from 'react';
 import {useAuth} from "../context/AuthContext.jsx";
 
 function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
@@ -10,7 +9,15 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
 
     const { login } = useAuth();
 
-    if (!show) return null;
+    useEffect(() => {
+    if (!show) {
+        setUsername('');
+        setPassword('');
+        setError('');
+    }
+    }, [show]);
+
+    if (!show) return false;
 
     const handleSubmit = async (e) => {
         e.preventDefault(); 
@@ -18,13 +25,10 @@ function LoginModal({ show, onClose, onLoginSuccess, onSwitchToRegister }) {
         setError('');
 
         try {
-            const response = await api.post('/auth/login', {
+            await login({
                 username: username,
                 password: password
             });
-            const token = response.data.token;
-            login(token, username);
-            onLoginSuccess();
         } catch (err) {
             setError(err.response?.data?.message || 'Błąd logowania');
         } finally {

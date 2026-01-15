@@ -3,12 +3,11 @@ import { useCart } from "../context/CartContext.jsx";
 import { useNavigate } from "react-router-dom";
 import ProductsTable from "../components/productsTable.jsx"; 
 import ActionOrder from "../components/ActionOrder.jsx";
-import api from "../api/axios.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import orderService from "../services/orderService.jsx";
 
 function OrderPage() {
     const { username} = useAuth();
-    console.log(username);
     const { cartItems } = useCart();
     const navigate = useNavigate();
     const [Loading, setLoading] = useState(false);
@@ -23,10 +22,81 @@ function OrderPage() {
         street: "",
         number: "" 
     });
-
     const [errors, setErrors] = useState({});
 
+    // pobranie statusu 
+    useEffect(() => {
+        const pobierzStatusy = async () => {
+            try {
+                const statusy = await orderService.getOrderStatuses();
+                
+                const statusNiezatwierdzony = statusy.find(
+                    item => item.nazwa === 'NIEZATWIERDZONE'
+                );
+                
+                if (statusNiezatwierdzony) {
+                    setidStatusu(statusNiezatwierdzony._id);
+                } else {
+                    console.error("Nie znaleziono statusu 'NIEZATWIERDZONE' w bazie danych!");
+                }
+            } catch (err) {
+                console.error("Błąd statusów:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        pobierzStatusy();
+    }, []); 
+
+    //tworzenie zamówienia
     const totalOrderValue = cartItems.reduce((acc, item) => acc + (item.cena_jednostkowa * item.quantity), 0).toFixed(2);
+
+    const handleSubmit = async () => {
+        if (!validate()) {
+            alert("Popraw błędy w formularzu.");
+            return;
+        }
+        setLoading(true);
+
+        try {
+            const zmapowanyKoszyk = cartItems.map(item => ({
+                produkt: item._id,
+                ilosc: Number(item.quantity),
+                cenaWChwiliZakupu: parseFloat(item.cena_jednostkowa), 
+                stawkaVat: 23,
+                rabat: 0
+            }));
+
+            const order = {
+                stan: idStatusu,
+                nazwaUzytkownika: username,
+                imie: recipient.firstname,
+                nazwisko: recipient.lastname,
+                email: recipient.email,
+                telefon: recipient.phone,
+                pozycje: zmapowanyKoszyk,
+                sumaCalkowita: Number(totalOrderValue),
+                zamieszkanie: {
+                    miejscowosc: recipient.city,
+                    kod_pocztowy: recipient.postal_number,
+                    ulica: recipient.street,
+                    nrDomu: recipient.number
+                }
+            };
+            await orderService.createOrder(order);
+            alert("Zamówienie złożone pomyślnie!");
+            
+            // if (clearCart) clearCart(); 
+            navigate('/'); 
+
+        } catch (err) {
+            console.error(" Błąd wysyłania:", err);
+            const serverMessage = err.response?.data?.error || err.response?.data?.message || err.message;
+            alert(`Błąd składania zamówienia:\n${serverMessage}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -71,77 +141,6 @@ function OrderPage() {
         return Object.keys(newErrors).length === 0;
     };
     
-     useEffect(() => {
-        const pobierzStatusy = async () => {
-            setLoading(true);
-
-            try {
-                let url = '/orders/status';
-                const response = await api.get(url);
-                const statusNiezatwierdzony = response.data.find(
-                    item => item.nazwa === 'NIEZATWIERDZONE'
-                    );
-                const idStatusu = statusNiezatwierdzony ? statusNiezatwierdzony._id : null;
-                setidStatusu(idStatusu);
-            } catch (err) {
-                console.error(err);
-                setError('Nie udało się pobrać statusów.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        pobierzStatusy();
-
-    }, []); 
-    
-    const handleSubmit = async () => {
-        if (!validate()) {
-            alert("Popraw błędy w formularzu.");
-            return;
-        }
-
-        setLoading(true);
-
-        try {
-            const zmapowanyKoszyk = cartItems.map(item => ({
-                produkt: item._id,
-                ilosc: Number(item.quantity),
-                cenaWChwiliZakupu: parseFloat(item.cena_jednostkowa), 
-                stawkaVat: 23,
-                rabat: 0
-            }));
-
-            const order = {
-                stan: idStatusu,
-                nazwaUzytkownika: username,
-                imie: recipient.firstname,
-                nazwisko: recipient.lastname,
-                email: recipient.email,
-                telefon: recipient.phone,
-                pozycje: zmapowanyKoszyk,
-                sumaCalkowita: Number(totalOrderValue),
-                zamieszkanie: {
-                    miejscowosc: recipient.city,
-                    kod_pocztowy: recipient.postal_number,
-                    ulica: recipient.street,
-                    nrDomu: recipient.number
-                }
-            };
-
-            const response = await api.post('/orders', order); 
-            alert("Zamówienie złożone pomyślnie!");
-            
-            // if (clearCart) clearCart(); 
-            navigate('/'); 
-
-        } catch (err) {
-            console.error(" Błąd wysyłania:", err);
-            const serverMessage = err.response?.data?.error || err.response?.data?.message || err.message;
-            alert(`Błąd składania zamówienia:\n${serverMessage}`);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     if (cartItems.length === 0) return <div className="text-center mt-5">Koszyk pusty</div>;
 

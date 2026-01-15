@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom'; 
-import api from '../api/axios';
 import ProductsTable from '../components/productsTable';
+import productsService from '../services/poductsService';
 
 function MainPage() {
     //pobranie danych z Layoutu
@@ -19,20 +19,15 @@ function MainPage() {
             setError('');
 
             try {
-                let url = '/products';
-                // Obsługa kategorii
-                if (category.nazwa && category.nazwa !== 'Wszystkie') {
-                    url = `/products/category/${category._id}`;
-                }
-                const response = await api.get(url);
-                // Filtrowanie według wyszukiwania
+                const response = await productsService.getProducts(category);
+
                 if (searchText && searchText.trim() !== '') {
-                    const filteredProducts = response.data.filter(product => 
+                    const filteredProducts = response.filter(product => 
                         product.nazwa.toLowerCase().includes(searchText.toLowerCase())
                     );
                     setProdukty(filteredProducts);
                 } else {
-                    setProdukty(response.data);
+                    setProdukty(response);
                 }
             } catch (err) {
                 console.error(err);
@@ -60,7 +55,7 @@ function MainPage() {
                             <p className="mt-2">Ładowanie produktów...</p>
                         </div>
                     ) : (
-                        <ProductsTable products={produkty} />
+                        <ProductsTable products={produkty} error={error} />
                     )}
                     
                 </div>

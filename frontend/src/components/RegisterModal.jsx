@@ -1,7 +1,5 @@
-// src/components/RegisterModal.jsx
 import React, { useState } from 'react';
-import api from '../api/axios'; // Twój axios
-import { useAuth } from '../context/AuthContext';
+import authService from '../services/authService';
 
 function RegisterModal({ show, onClose, onSwitchToLogin }) {
     const [username, setUsername] = useState('');
@@ -18,17 +16,12 @@ function RegisterModal({ show, onClose, onSwitchToLogin }) {
         setError('');
 
         try {
-            await api.post('/auth/register', {
+            const response = await authService.registerFunc({
                 username,
                 password,
                 type
             });
-            
             setSuccess(true);
-            setTimeout(() => {
-                onSwitchToLogin();
-            }, 2000);
-
         } catch (err) {
             setError(err.response?.data?.message || 'Błąd rejestracji');
         } finally {

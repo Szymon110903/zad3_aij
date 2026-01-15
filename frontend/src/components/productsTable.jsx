@@ -2,7 +2,7 @@ import React from "react";
 import ProductRow from "./productsRow";
 import ActionAddToCart from "./ActionAddToCart";
     
-function ProductsTable ({ products, ActionElement = ActionAddToCart }) {
+function ProductsTable ({ products, ActionElement = ActionAddToCart, error}) {
     return (
         <table>
           
@@ -14,7 +14,7 @@ function ProductsTable ({ products, ActionElement = ActionAddToCart }) {
                 ) : (
                 <tr>
                     <td>
-                    Brak produktów do wyświetlenia.
+                    {error}
                     </td>
                 </tr>
                 )}

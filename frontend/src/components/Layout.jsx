@@ -5,9 +5,9 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 
 import TopNavbar from "./TopNavbar";
-import LoginModal from "./LoginModal";
 
 function Layout() {
+    const {login} = useAuth();
     const [searchText, setSearchText] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState('Wszystkie');
     const [kategorie, setKategorie] = useState([]);

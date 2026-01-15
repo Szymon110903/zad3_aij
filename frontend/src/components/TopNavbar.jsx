@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from "../context/CartContext.jsx";
 import { Link } from 'react-router-dom';
-// 1. Używamy Contextu
 import { useAuth } from '../context/AuthContext.jsx';
 
-// Usuń 'onOpenLogin' z propsów - nie jest już potrzebny
 function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
     const navigate = useNavigate();
     
-    // 2. Pobieramy wszystko co potrzebne z Contextu
     const { user, logout, setShowLoginModal } = useAuth();
     
     const [searchText, setSearchText] = useState('');
