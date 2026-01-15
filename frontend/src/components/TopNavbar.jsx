@@ -155,7 +155,7 @@ function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
                                     </button>
                                     
                                     <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
-                                        onMouseDown={() => navigate('/orders')}
+                                        onMouseDown={() => navigate('/Zamowienia')}
                                     >
                                         Moje zamówienia
                                     </button>

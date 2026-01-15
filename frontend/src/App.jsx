@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import LoginModal from './components/LoginModal.jsx';
 import RegisterModal from './components/RegisterModal.jsx';
 import OrderPage from './pages/OrderPage.jsx';
+import OrdersPage from './pages/OrdersPage.jsx';
 
 const GlobalModals = () => {
     const { showLoginModal, setShowLoginModal,
@@ -63,12 +64,7 @@ function App() {
                   </div>
               } />
 
-              <Route path="orders" element={
-                  <div className="text-center mt-5">
-                      <h2> Zamówienia</h2>
-                      <p className="text-muted">Tutaj pojawi się lista zamówień.</p>
-                  </div>
-              } />
+              <Route path="Zamowienia" element={<OrdersPage/>} />
           </Route>
 
         </Route>

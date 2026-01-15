@@ -417,4 +417,71 @@ zamowieniaApi.post('/:id/opinia',verifyToken,async (req, res) => {
     }
 });
 
+
+/**
+ * @swagger
+ * /orders/{username}:
+ *   get:
+ *     summary: Get all orders for a specific user
+ *     description: Retrieves all orders associated with the given username, including order status and product details
+ *     tags: [Zamowienia]
+ *     security: 
+ *        - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The username to retrieve orders for
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved orders
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   nazwaUzytkownika:
+ *                     type: string
+ *                   stan:
+ *                     type: object
+ *                     description: Order status details
+ *                   pozycje:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         produkt:
+ *                           type: object
+ *                           description: Product details
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+
+zamowieniaApi.get('/:username', verifyToken, async (req, res) => {
+    try {
+        const usernameFromUrl = req.params.username;
+        const loggedInUser = req.user;
+
+        if (usernameFromUrl !== loggedInUser.username) {
+            return res.status(StatusCodes.FORBIDDEN).json({ error: "Brak dostępu do zamówień innego użytkownika" });
+        }
+        
+         const zamowienia = await Zamowienie.find({ nazwaUzytkownika: req.params.username })
+            .populate('stan')             
+            .populate('pozycje.produkt');
+            
+        res.status(StatusCodes.OK).json(zamowienia);
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({error : error.message});
+    }
+
+});
 module.exports = zamowieniaApi;
