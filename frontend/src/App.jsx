@@ -10,6 +10,8 @@ import RegisterModal from './components/RegisterModal.jsx';
 import OrderPage from './pages/OrderPage.jsx';
 import OrdersPage from './pages/OrdersPage.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
+import CategoriesPage from './pages/CategoriesPage.jsx';
+import AdminOrderPage from './pages/AdminOrderPage.jsx';
 
 const GlobalModals = () => {
     const { showLoginModal, setShowLoginModal,
@@ -66,18 +68,8 @@ function App() {
           </Route>
 
           <Route path="admin" element={<AdminRoute />}>
-              <Route path="products" element={
-                  <div className="text-center mt-5">
-                      <h2>Zarządzanie Produktami</h2>
-                      <p>Tu będzie tabela z edycją/usuwaniem produktów.</p>
-                  </div>
-              } />
-              <Route path="orders" element={
-                  <div className="text-center mt-5">
-                      <h2>Wszystkie Zamówienia</h2>
-                      <p>Tu admin zobaczy zamówienia wszystkich klientów.</p>
-                  </div>
-              } />
+              <Route path="categories" element={<CategoriesPage />} />
+              <Route path="orders" element={<AdminOrderPage />} />
           </Route>
         </Route>
       </Routes>

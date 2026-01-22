@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import orderService from "../services/orderService";
-import OrderTable from "../components/OrdersTable"; 
+import OrderTable from "../components/OrderTable"; 
 
 function OrdersPage() {
     const { username } = useAuth();

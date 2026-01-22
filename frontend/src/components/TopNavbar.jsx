@@ -160,9 +160,9 @@ function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
                                         <>
                                             <button 
                                                 className="dropdown-item fw-bold text-danger rounded-2 py-2 mb-1"
-                                                onMouseDown={() => navigate('/admin/products')}
+                                                onMouseDown={() => navigate('/admin/categories')}
                                             >
-                                                <i className="bi bi-box-seam me-2"></i> Zarządzaj Produktami
+                                                <i className="bi bi-box-seam me-2"></i> Zarządzaj Kategoriami
                                             </button>
                                             
                                             <button 
