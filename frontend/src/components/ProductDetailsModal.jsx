@@ -7,11 +7,13 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
     const { isAdmin } = useAuth();
     
     const [formData, setFormData] = useState({ ...product });
-    
     const [categories, setCategories] = useState([]);
     
+    // Stany dla widoku Usera
     const [seoDescription, setSeoDescription] = useState("");
     const [loadingSeo, setLoadingSeo] = useState(false);
+    
+    // Stany dla Admina (AI)
     const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
@@ -19,11 +21,13 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
             setFormData({ ...product });
 
             if (isAdmin) {
+                // Admin: Pobierz listę kategorii do edycji
                 categoryService.getAllCategories()
                     .then(data => setCategories(data))
                     .catch(err => console.error("Błąd pobierania kategorii:", err));
             } 
             else {
+                // User: Pobierz SEO opis
                 setSeoDescription(""); 
                 setLoadingSeo(true);
                 productsService.getProductSeoDescription(product._id)
@@ -45,8 +49,12 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
             const data = await productsService.generateAndSaveDescription(product._id);
             setFormData(prev => ({ ...prev, opis: data.seoDescription }));
             alert("Opis zaktualizowany!");
-        } catch (e) { alert("Błąd AI"); } 
-        finally { setIsGenerating(false); }
+        } catch (e) { 
+            console.error(e);
+            alert("Błąd generowania opisu AI"); 
+        } finally { 
+            setIsGenerating(false); 
+        }
     };
 
     const handleChange = (e) => {
@@ -73,7 +81,7 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
                 <div className="modal-dialog modal-dialog-centered modal-lg">
                     <div className="modal-content shadow border-0">
                         
-                        <div className={`modal-header text-white ${isAdmin ? 'bg-danger' : 'bg-primary'}`}>
+                        <div className="modal-header bg-dark text-white">
                             <h5 className="modal-title">{isAdmin ? `Edycja: ${product.nazwa}` : product.nazwa}</h5>
                             <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                         </div>
@@ -109,27 +117,52 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
                                         </select>
                                     </div>
 
-                                    {/* Opis AI */}
                                     <div className="mb-3">
                                         <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <label className="form-label fw-bold mb-0">Opis</label>
-                                            <button type="button" className="btn btn-sm btn-outline-primary fw-bold" onClick={handleGenerateAI} disabled={isGenerating}>
-                                                {isGenerating ? "Tworzenie..." : "Generuj AI"}
+                                            <label className="form-label fw-bold mb-0">Opis (HTML)</label>
+                                            
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-outline-primary fw-bold" 
+                                                onClick={handleGenerateAI} 
+                                                disabled={isGenerating}
+                                            >
+                                                {isGenerating ? (
+                                                    <span><span className="spinner-border spinner-border-sm me-1"></span>Tworzenie...</span>
+                                                ) : (
+                                                    <span><i className="bi bi-magic me-1"></i>Generuj AI</span>
+                                                )}
                                             </button>
                                         </div>
-                                        <textarea className="form-control font-monospace small" rows="5" name="opis" value={formData.opis || ""} onChange={handleChange}></textarea>
+                                        
+                                        <textarea 
+                                            className="form-control font-monospace small" 
+                                            rows="6" 
+                                            name="opis" 
+                                            value={formData.opis || ""} 
+                                            onChange={handleChange}
+                                        ></textarea>
+                                        <div className="form-text text-muted">Możesz ręcznie edytować wygenerowany tekst.</div>
                                     </div>
-                                    
+
                                 </form>
                             ) : (
                                 <div>
                                     <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
                                         <h3 className="text-primary fw-bold mb-0">{product.cena_jednostkowa} zł</h3>
-                                        <span className="text-muted small">
+                                        <span className="badge bg-light text-dark border">
                                             Kategoria: {product.kategoria?.nazwa || "Ogólna"}
                                         </span>
                                     </div>
-                                    <div dangerouslySetInnerHTML={{ __html: seoDescription }} />
+                                    
+                                    {loadingSeo ? (
+                                        <div className="text-center py-4">
+                                            <div className="spinner-border text-primary" role="status"></div>
+                                            <p className="mt-2 text-muted">Pobieranie opisu...</p>
+                                        </div>
+                                    ) : (
+                                        <div dangerouslySetInnerHTML={{ __html: seoDescription }} />
+                                    )}
                                 </div>
                             )}
                         </div>

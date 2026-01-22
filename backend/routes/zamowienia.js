@@ -198,8 +198,7 @@ zamowieniaApi.post('/', async (req, res) => {
         }
         noweZamowienie.sumaCalkowita = noweZamowienie.pozycje.reduce((sum, pozycje) => {
             const cenaPoRabacie = pozycje.cenaWChwiliZakupu * (1 - (pozycje.rabat || 0) / 100);
-            const cenaZVat = cenaPoRabacie * (1 + (pozycje.stawkaVat || 23) / 100);
-            return sum + cenaZVat * pozycje.ilosc;
+            return sum + cenaPoRabacie * pozycje.ilosc;
         }, 0);
         if (isNaN(noweZamowienie.sumaCalkowita) || noweZamowienie.sumaCalkowita < 0) {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: "Suma całkowita zamówienia jest nieprawidłowa" });

@@ -106,7 +106,7 @@ function OrderPage() {
             await orderService.createOrder(order);
             alert("Zamówienie złożone pomyślnie!");
             if (clearCart) clearCart();
-            navigate('/orders'); 
+            navigate('/'); 
 
         } catch (err) {
             console.error("Błąd wysyłania:", err);
@@ -121,14 +121,15 @@ function OrderPage() {
 
     return (
         <div className="container mt-5 mb-5">
-            <h2 className="mb-4 text-center">Finalizacja Zamówienia</h2>
+            <h2 className="mb-4 text-center fw-bold">Finalizacja Zamówienia</h2>
             
-            <div className="row">
-                <div className="col-lg-5 mb-4">
+            <div className="row g-4 align-items-stretch">
+                
+                <div className="col-lg-5 mb-4 mb-lg-0">
                     <AddressForm 
                         recipient={recipient}
                         errors={errors}
-                        onChange={handleChange}
+                        onChange={handleChange} 
                     />
                 </div>
 
@@ -137,7 +138,7 @@ function OrderPage() {
                         cartItems={cartItems}
                         totalValue={totalOrderValue}
                         loading={loading}
-                        onSubmit={handleSubmit}
+                        onSubmit={handleSubmit} 
                     />
                 </div>
             </div>

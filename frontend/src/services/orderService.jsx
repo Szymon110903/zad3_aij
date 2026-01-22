@@ -30,6 +30,7 @@ const getAllOrders = async () => {
     const response = await api.get('/orders');
     return response.data;
 };
+
 const orderService = {
     getUserOrders,
     createOrder,

@@ -12,9 +12,7 @@ function AdminOrderPage() {
         setError("");
         try {
             const data = await orderService.getAllOrders();
-            
             const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            
             setOrders(sortedData);
         } catch (err) {
             console.error("Błąd pobierania zamówień:", err);
@@ -29,36 +27,41 @@ function AdminOrderPage() {
     }, [fetchAllOrders]);
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-5 mb-5">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2 className="text-primary fw-bold">Zarządzanie Zamówieniami</h2>
-                <button className="btn btn-outline-primary btn-sm" onClick={fetchAllOrders}>
-                    <i className="bi bi-arrow-clockwise me-1"></i> Odśwież
+                <div>
+                    <h2 className="fw-bold mb-0 text-dark">Panel Administratora</h2>
+                    <p className="text-muted small mb-0">Zarządzaj wszystkimi zamówieniami w systemie</p>
+                </div>
+                
+                <button 
+                    className="btn btn-primary shadow-sm" 
+                    onClick={fetchAllOrders}
+                    disabled={loading}
+                >
+                    <i className={`bi bi-arrow-clockwise me-2 ${loading ? 'spinner-border spinner-border-sm' : ''}`}></i> 
+                    {loading ? 'Odświeżanie...' : 'Odśwież listę'}
                 </button>
             </div>
 
             {error && (
-                <div className="alert alert-danger" role="alert">
-                    {error}
+                <div className="alert alert-danger shadow-sm border-0" role="alert">
+                    <i className="bi bi-exclamation-triangle-fill me-2"></i> {error}
                 </div>
             )}
 
-            {loading ? (
+            {loading && orders.length === 0 ? (
                 <div className="text-center py-5">
-                    <div className="spinner-border text-primary" role="status">
+                    <div className="spinner-border text-primary" role="status" style={{width: "3rem", height: "3rem"}}>
                         <span className="visually-hidden">Ładowanie...</span>
                     </div>
-                    <p className="mt-2 text-muted">Pobieranie zamówień...</p>
+                    <p className="mt-3 text-muted fw-bold">Pobieranie danych...</p>
                 </div>
             ) : (
-                <div className="card shadow-lg border-0">
-                    <div className="card-body p-0">
-                        <OrderTable 
-                            orders={orders} 
-                            onRefresh={fetchAllOrders} 
-                        />
-                    </div>
-                </div>
+                <OrderTable 
+                    orders={orders} 
+                    onRefresh={fetchAllOrders} 
+                />
             )}
         </div>
     );

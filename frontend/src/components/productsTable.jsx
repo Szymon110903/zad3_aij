@@ -18,18 +18,12 @@ function ProductsTable({ products, ActionElement = ActionAddToCart, error, onRef
         setSelectedProduct(null);
     };
 
-
     const handleAdminSave = async (updatedProduct) => {
         try {
-            console.log("Wysyłanie PATCH dla ID:", updatedProduct._id);
-            
             await productsService.updateProduct(updatedProduct._id, updatedProduct);
-            
             alert("Produkt został zaktualizowany!");
             handleCloseModal();
-            
             if (onRefresh) onRefresh();
-            
         } catch (err) {
             console.error("Błąd edycji produktu:", err);
             alert("Wystąpił błąd podczas zapisywania zmian.");
@@ -38,34 +32,49 @@ function ProductsTable({ products, ActionElement = ActionAddToCart, error, onRef
 
     return (
         <>
-            <table className="table table-hover">
-                <tbody>
-                    {products.length > 0 ? (
-                        products.map((product) => (
-                            <ProductRow 
-                                key={product._id} 
-                                product={product} 
-                                ActionElement={ActionElement}
-                                onClick={handleRowClick} 
-                            />
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="4" className="text-center text-danger">
-                                {error}
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            <div className="card shadow-sm border-0">
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-hover align-middle mb-0">
+                            <thead className="bg-light">
+                                <tr>
+                                    <th className="ps-4">Produkt</th>
+                                    <th className="d-none d-md-table-cell">Cena</th>
+                                    <th className="d-none d-md-table-cell">Opis / Suma</th>
+                                    <th className="text-end pe-4">Akcja</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {products.length > 0 ? (
+                                    products.map((product) => (
+                                        <ProductRow 
+                                            key={product._id} 
+                                            product={product} 
+                                            ActionElement={ActionElement}
+                                            onClick={handleRowClick} 
+                                        />
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center text-danger py-4">
+                                            {error || "Brak produktów do wyświetlenia"}
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
             <ProductDetailsModal 
                 show={showModal} 
                 product={selectedProduct} 
-                onClose={handleCloseModal}
+                onClose={handleCloseModal} 
                 onSave={handleAdminSave}
             />
         </>
-    )
+    );
 }
+
 export default ProductsTable;

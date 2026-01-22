@@ -7,11 +7,9 @@ import orderService from "../services/orderService";
 function OrderTable({ orders, onRefresh }) {
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showModal, setShowModal] = useState(false);
-
     
     const [statusFilter, setStatusFilter] = useState("Wszystkie");
     const [availableStatuses, setAvailableStatuses] = useState([]);
-
    
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage] = useState(5); 
@@ -39,7 +37,6 @@ function OrderTable({ orders, onRefresh }) {
 
     const indexOfLastItem = currentPage * itemsPerPage; 
     const indexOfFirstItem = indexOfLastItem - itemsPerPage; 
-    
     const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
 
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -56,17 +53,17 @@ function OrderTable({ orders, onRefresh }) {
 
     return (
         <>
-            <div className="bg-white rounded shadow-sm overflow-hidden">
+            <div className="card shadow-lg border-0">
                 
-                <div className="p-3 bg-light border-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 className="mb-0 text-muted">
-                        Lista zamówień <span className="badge bg-secondary rounded-pill ms-2">{filteredOrders.length}</span>
-                    </h5>
-                    
+                <div className="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h4 className="mb-0 fs-5">
+                        Lista zamówień <span className="badge bg-secondary ms-2 fs-6">{filteredOrders.length}</span>
+                    </h4>
+
                     <div className="d-flex align-items-center">
-                        <label className="me-2 fw-bold small text-uppercase text-muted">Status:</label>
+                        <label className="me-2 small text-white-50 text-uppercase fw-bold">Status:</label>
                         <select 
-                            className="form-select form-select-sm w-auto shadow-sm border-secondary-subtle"
+                            className="form-select form-select-sm w-auto shadow-none border-secondary text-bg-dark"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
@@ -80,47 +77,54 @@ function OrderTable({ orders, onRefresh }) {
                     </div>
                 </div>
 
-                <div className="table-responsive">
-                    <table className="table table-hover mb-0 align-middle">
-                        <thead className="table-dark">
-                            <tr>
-                                <th scope="col" className="ps-4">ID</th>
-                                <th scope="col">Data</th>
-                                <th scope="col" className="text-center">Produkty</th>
-                                <th scope="col" className="text-end">Kwota</th>
-                                <th scope="col" className="text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentOrders.length > 0 ? (
-                                currentOrders.map((order) => (
-                                    <OrderRow 
-                                        key={order._id} 
-                                        order={order} 
-                                        onClick={handleRowClick} 
-                                    />
-                                ))
-                            ) : (
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-hover mb-0 align-middle">
+                            <thead className="table-light text-secondary small text-uppercase">
                                 <tr>
-                                    <td colSpan="5" className="text-center py-5 text-muted">
-                                        {orders && orders.length > 0 
-                                            ? "Brak zamówień o wybranym statusie." 
-                                            : "Brak zamówień do wyświetlenia."}
-                                    </td>
+                                    <th scope="col" className="ps-4 py-3">ID Zamówienia</th>
+                                    <th scope="col" className="py-3">Data</th>
+                                    <th scope="col" className="text-center py-3">Poz.</th>
+                                    <th scope="col" className="text-end py-3">Wartość</th>
+                                    <th scope="col" className="text-center py-3">Status</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {currentOrders.length > 0 ? (
+                                    currentOrders.map((order) => (
+                                        <OrderRow 
+                                            key={order._id} 
+                                            order={order} 
+                                            onClick={handleRowClick} 
+                                        />
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-5 text-muted">
+                                            <div className="py-4">
+                                                <i className="bi bi-inbox fs-1 d-block mb-3 text-secondary opacity-50"></i>
+                                                {orders && orders.length > 0 
+                                                    ? "Brak zamówień o wybranym statusie." 
+                                                    : "Brak zamówień do wyświetlenia."}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div className="pb-3 px-3">
-                    <Pagination 
-                        itemsPerPage={itemsPerPage} 
-                        totalItems={filteredOrders.length} 
-                        paginate={paginate} 
-                        currentPage={currentPage}
-                    />
-                    
+                {/* Stopka z paginacją */}
+                <div className="card-footer bg-light p-3 border-top">
+                     <div className="d-flex justify-content-center">
+                        <Pagination 
+                            itemsPerPage={itemsPerPage} 
+                            totalItems={filteredOrders.length} 
+                            paginate={paginate} 
+                            currentPage={currentPage}
+                        />
+                    </div>
                     {filteredOrders.length > 0 && (
                         <div className="text-center text-muted small mt-2">
                             Strona {currentPage} z {Math.ceil(filteredOrders.length / itemsPerPage)}

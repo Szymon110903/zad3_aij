@@ -2,26 +2,27 @@ import React from "react";
 
 function AddressForm({ recipient, errors, onChange }) {
     return (
-        <div className="card shadow-sm border-0">
-            <div className="card-header bg-dark text-white">
+        <div className="card shadow-lg border-0 h-100">
+            <div className="card-header bg-dark text-white py-3">
                 <h4 className="mb-0 fs-5">Dane Odbiorcy</h4>
             </div>
             <div className="card-body p-4">
                 <form>
-                    {/* DANE KONTAKTOWE */}
-                    <h6 className="text-muted text-uppercase small fw-bold mb-3">Kontakt</h6>
+                    <h6 className="text-muted text-uppercase small fw-bold mb-3 border-bottom pb-2">Kontakt</h6>
                     
-                    <div className="mb-3">
-                        <label className="form-label">Imię</label>
-                        <input type="text" className={`form-control ${errors.firstname ? 'is-invalid' : ''}`}
-                            name="firstname" value={recipient.firstname} onChange={onChange} />
-                        {errors.firstname && <div className="invalid-feedback">{errors.firstname}</div>}
-                    </div>
-                    <div className="mb-3">
-                        <label className="form-label">Nazwisko</label>
-                        <input type="text" className={`form-control ${errors.lastname ? 'is-invalid' : ''}`}
-                            name="lastname" value={recipient.lastname} onChange={onChange} />
-                        {errors.lastname && <div className="invalid-feedback">{errors.lastname}</div>}
+                    <div className="row">
+                        <div className="col-md-6 mb-3">
+                            <label className="form-label">Imię</label>
+                            <input type="text" className={`form-control ${errors.firstname ? 'is-invalid' : ''}`}
+                                name="firstname" value={recipient.firstname} onChange={onChange} />
+                            {errors.firstname && <div className="invalid-feedback">{errors.firstname}</div>}
+                        </div>
+                        <div className="col-md-6 mb-3">
+                            <label className="form-label">Nazwisko</label>
+                            <input type="text" className={`form-control ${errors.lastname ? 'is-invalid' : ''}`}
+                                name="lastname" value={recipient.lastname} onChange={onChange} />
+                            {errors.lastname && <div className="invalid-feedback">{errors.lastname}</div>}
+                        </div>
                     </div>
 
                     <div className="row">
@@ -39,10 +40,9 @@ function AddressForm({ recipient, errors, onChange }) {
                         </div>
                     </div>
 
-                    <hr className="my-4"/>
+                    <div className="my-4"></div>
 
-                    {/* ADRES */}
-                    <h6 className="text-muted text-uppercase small fw-bold mb-3">Adres dostawy</h6>
+                    <h6 className="text-muted text-uppercase small fw-bold mb-3 border-bottom pb-2">Adres dostawy</h6>
 
                     <div className="row">
                         <div className="col-md-8 mb-3">
@@ -54,19 +54,19 @@ function AddressForm({ recipient, errors, onChange }) {
                         <div className="col-md-4 mb-3">
                             <label className="form-label">Nr domu</label>
                             <input type="text" className={`form-control ${errors.number ? 'is-invalid' : ''}`}
-                                name="number" value={recipient.number} onChange={onChange} placeholder="np. 10/24"/>
+                                name="number" value={recipient.number} onChange={onChange} placeholder="np. 10"/>
                             {errors.number && <div className="invalid-feedback">{errors.number}</div>}
                         </div>
                     </div>
 
                     <div className="row">
-                        <div className="col-md-5 mb-3">
+                        <div className="col-md-4 mb-3">
                             <label className="form-label">Kod pocztowy</label>
                             <input type="text" className={`form-control ${errors.postal_number ? 'is-invalid' : ''}`}
                                 name="postal_number" value={recipient.postal_number} onChange={onChange} placeholder="00-000"/>
                             {errors.postal_number && <div className="invalid-feedback">{errors.postal_number}</div>}
                         </div>
-                        <div className="col-md-7 mb-3">
+                        <div className="col-md-8 mb-3">
                             <label className="form-label">Miejscowość</label>
                             <input type="text" className={`form-control ${errors.city ? 'is-invalid' : ''}`}
                                 name="city" value={recipient.city} onChange={onChange} placeholder="np. Warszawa"/>
