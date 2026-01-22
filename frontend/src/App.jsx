@@ -9,6 +9,7 @@ import LoginModal from './components/LoginModal.jsx';
 import RegisterModal from './components/RegisterModal.jsx';
 import OrderPage from './pages/OrderPage.jsx';
 import OrdersPage from './pages/OrdersPage.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
 
 const GlobalModals = () => {
     const { showLoginModal, setShowLoginModal,
@@ -49,28 +50,38 @@ function App() {
   return (
     <AuthProvider>
       <GlobalModals />
-    <Routes>
-        {/* publiczne*/}
+      <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
-          {/* chronione */}
           <Route element={<RouteProtect><Outlet /></RouteProtect>}>
               <Route path="koszyk" element={<CartPage/>} />
-              <Route path="Zamowienie" element = {<OrderPage/>}/>
+              <Route path="Zamowienie" element={<OrderPage/>}/>
               <Route path="profile" element={
                   <div className="text-center mt-5">
-                      <h2> Twój Profil</h2>
-                      <p className="text-muted">Ta strona jest w trakcie budowy.</p>
+                      <h2>Twój Profil</h2>
+                      <p className="text-muted">W budowie...</p>
                   </div>
               } />
-
               <Route path="Zamowienia" element={<OrdersPage/>} />
           </Route>
 
+          <Route path="admin" element={<AdminRoute />}>
+              <Route path="products" element={
+                  <div className="text-center mt-5">
+                      <h2>Zarządzanie Produktami</h2>
+                      <p>Tu będzie tabela z edycją/usuwaniem produktów.</p>
+                  </div>
+              } />
+              <Route path="orders" element={
+                  <div className="text-center mt-5">
+                      <h2>Wszystkie Zamówienia</h2>
+                      <p>Tu admin zobaczy zamówienia wszystkich klientów.</p>
+                  </div>
+              } />
+          </Route>
         </Route>
-    </Routes>
+      </Routes>
     </AuthProvider>
-
   );
 }
 

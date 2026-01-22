@@ -55,7 +55,7 @@ const zamowienieSchema = new Schema({
   opinia: { type: opiniaSchema, default: null, required: false },
   zamieszkanie: {type: zamieszkanieSchema, required: true}
 }, {
-  timestamps: false, collection: 'Zamowienia'
+  timestamps: true, collection: 'Zamowienia'
 });
 
 module.exports = mongoose.model('Zamowienie', zamowienieSchema);

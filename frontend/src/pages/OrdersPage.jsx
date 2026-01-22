@@ -1,57 +1,48 @@
-
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import OrdersTable from "../components/OrdersTable";
 import orderService from "../services/orderService";
+import OrderTable from "../components/OrdersTable"; 
 
+function OrdersPage() {
+    const { username } = useAuth();
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-function OrdersPage(){
-    const { username} = useAuth();
-
-    const [Loading, setLoading] = useState(false);
-    const [Error, setError] = useState(''); 
-    const [Orders, setOrders] = useState([]);
-
-    //pobieranie zamówień 
-     useEffect(() => {
+    const pobierzZamowienia = async () => {
         if (!username) return;
-        const pobierzZamówienia = async () => {
-            setLoading(true);
-            setError('');
+        setLoading(true);
+        try {
+            const data = await orderService.getUserOrders(username);
+            const sortedData = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setOrders(sortedData);
+        } catch (err) {
+            console.error(err);
+            setError('Nie udało się pobrać zamówień.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            try {
-                const response = await orderService.getUserOrders(username);
-                setOrders(response);
-            } catch (err) {
-                console.error(err);
-                setError('Nie udało się pobrać zamowien.');
-            } finally {
-                setLoading(false);
-            }
-        };
-        pobierzZamówienia();
-    }, [username]); 
-
+    useEffect(() => {
+        pobierzZamowienia();
+    }, [username]);
 
     return (
-         <div className="container mt-4">
-            <div className="card shadow-lg">
-                <div className="card-body p-4">
-
-                    {Error && <div className="alert alert-danger">{Error}</div>}
-                    
-                    {Loading ? (
-                        <div className="text-center p-5">
-                            <div className="spinner-border text-primary" role="status"></div>
-                            <p className="mt-2">Ładowanie zamówień...</p>
-                        </div>
-                    ) : (
-                        <OrdersTable orders={Orders} />
-                    )}
-                    
-                </div>
-            </div>
+        <div className="container mt-5">
+            <h2 className="mb-4">Twoje zamówienia</h2>
+            
+            {loading && <div className="text-center">Ładowanie...</div>}
+            {error && <div className="alert alert-danger">{error}</div>}
+            
+            {!loading && (
+                <OrderTable 
+                    orders={orders} 
+                    onRefresh={pobierzZamowienia} 
+                />
+            )}
         </div>
-    )
+    );
 }
+
 export default OrdersPage;

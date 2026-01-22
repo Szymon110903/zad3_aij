@@ -8,6 +8,7 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(localStorage.getItem('token'));
     const [username, setUsername] = useState(localStorage.getItem('username') || "");
 
+    const [type, setType] = useState(localStorage.getItem('type') || "CUSTOMER");
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
 
@@ -17,7 +18,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const responseData = await authService.loginFunc(loginData);
             
-            const { token, username: newUsername } = responseData;
+            const { token, username: newUsername, type } = responseData;
 
             if (!token) throw new Error("Backend nie zwrócił tokena!");
 
@@ -27,6 +28,10 @@ export const AuthProvider = ({ children }) => {
             if (finalUsername) {
                 localStorage.setItem('username', finalUsername);
                 setUsername(finalUsername);
+            }
+            if (type) {
+                localStorage.setItem('type', type);
+                setType(type);
             }
             setUser(token);
             setShowLoginModal(false);
@@ -56,9 +61,10 @@ export const AuthProvider = ({ children }) => {
         navigate('/')
     };
 
+    const isAdmin = type === 'ADMIN';
     return (
         <AuthContext.Provider value={{ user,username, login, register, logout, showLoginModal, setShowLoginModal, showRegisterModal, 
-            setShowRegisterModal }}>
+            setShowRegisterModal, isAdmin, type }}>
             {children}
         </AuthContext.Provider>
     );

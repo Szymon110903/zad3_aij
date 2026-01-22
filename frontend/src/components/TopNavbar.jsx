@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
     const navigate = useNavigate();
     
-    const { user, logout, setShowLoginModal } = useAuth();
+    const { user, logout, setShowLoginModal, isAdmin } = useAuth();
     
     const [searchText, setSearchText] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Wszystkie');
@@ -116,7 +116,9 @@ function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
                                 Szukaj produktu...
                             </label>
                             {searchText && searchText.length > 0 && (
-                                <button type="button" className="btn border-0 position-absolute top-50 end-0 translate-middle-y me-3 text-muted mb-2" style={{ zIndex: 10 }} onClick={clearSearch}>✕</button>
+                                <button type="button" className="btn border-0 position-absolute top-50 end-0 translate-middle-y me-3 text-muted mb-2" 
+                                style={{ zIndex: 10 }} 
+                                onClick={clearSearch}>✕</button>
                             )}
                         </div>
                     </div>
@@ -131,9 +133,10 @@ function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 onBlur={() => setTimeout(() => setShowProfileMenu(false), 200)}
                             >
-                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#adb5bd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isAdmin ? '#dc3545' : '#adb5bd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {isAdmin && <i className="bi bi-shield-lock-fill text-white" style={{fontSize: '0.8rem'}}></i>}
                                 </div>
-                                <span className="d-none d-md-inline">Profil</span>
+                                <span className="d-none d-md-inline">{isAdmin ? 'Administrator' : 'Profil'}</span>
                             </button>
 
                             {showProfileMenu && (
@@ -142,38 +145,60 @@ function TopNavbar({ kategorie, onSearch, onCategorySelect }) {
                                     style={{ minWidth: '220px', zIndex: 1050 }}
                                 >
                                     <h6 className="dropdown-header text-uppercase small fw-bold text-muted my-1 ps-3">
-                                        Konto
+                                        {isAdmin ? 'Panel Admina' : 'Konto'}
                                     </h6>
 
                                     <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
                                         onMouseDown={() => navigate('/profile')}
                                     >
-                                        Profil
-                                    </button>
-                                    
-                                    <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
-                                        onMouseDown={() => navigate('/Zamowienia')}
-                                    >
-                                        Moje zamówienia
-                                    </button>
-                                    
-                                    <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
-                                        onMouseDown={() => navigate('/koszyk')}
-                                    > 
-                                        Koszyk {' '}
-                                        {cartItemsCount > 0 && (
-                                            <span className="badge bg-primary rounded-pill">
-                                                {cartItemsCount}
-                                            </span>
-                                        )}
+                                        Ustawienia profilu
                                     </button>
 
                                     <div className="dropdown-divider my-2"></div>
+
+                                    {isAdmin ? (
+                                        <>
+                                            <button 
+                                                className="dropdown-item fw-bold text-danger rounded-2 py-2 mb-1"
+                                                onMouseDown={() => navigate('/admin/products')}
+                                            >
+                                                <i className="bi bi-box-seam me-2"></i> Zarządzaj Produktami
+                                            </button>
+                                            
+                                            <button 
+                                                className="dropdown-item fw-bold text-danger rounded-2 py-2 mb-1"
+                                                onMouseDown={() => navigate('/admin/orders')}
+                                            >
+                                                <i className="bi bi-list-check me-2"></i> Wszystkie Zamówienia
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
+                                                onMouseDown={() => navigate('/Zamowienia')}
+                                            >
+                                                <i className="bi bi-bag me-2"></i> Moje zamówienia
+                                            </button>
+                                            
+                                            <button className="dropdown-item fw-bold text-secondary rounded-2 py-2 mb-1" 
+                                                onMouseDown={() => navigate('/koszyk')}
+                                            > 
+                                                <i className="bi bi-cart me-2"></i> Koszyk {' '}
+                                                {cartItemsCount > 0 && (
+                                                    <span className="badge bg-primary rounded-pill ms-1">
+                                                        {cartItemsCount}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
+
+                                    <div className="dropdown-divider my-2"></div>
                                     
-                                    <button className="dropdown-item fw-bold text-danger rounded-2 py-2" 
+                                    <button className="dropdown-item fw-bold text-dark rounded-2 py-2" 
                                         onMouseDown={logout}
                                     >
-                                        Wyloguj się
+                                        <i className="bi bi-box-arrow-right me-2"></i> Wyloguj się
                                     </button>
                                 </div>
                             )}
