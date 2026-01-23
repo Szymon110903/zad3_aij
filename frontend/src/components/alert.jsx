@@ -7,18 +7,21 @@ function Alert({ message, show, type, onClose }) {
 
     return (
         <div 
-            className={`alert ${alertClass} alert-dismissible fade show`} 
+            className={`alert ${alertClass} alert-dismissible fade show shadow-lg`} 
             role="alert"
             style={{ 
                 position: 'fixed', 
-                transform: 'translateX(-50%)', 
-                zIndex: 9999,
-                bottom: '20px',
-                left: '10%', 
-                width: '300px'
+                bottom: '20px',      
+                left: '20px',        
+                zIndex: 10000,       
+                minWidth: '300px',
+                maxWidth: '400px',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.2)' 
             }}
         >
-            {message}
+            <i className={`bi ${type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'} me-2`}></i>
+            
+            <strong>{message}</strong>
 
             <button 
                 type="button" 

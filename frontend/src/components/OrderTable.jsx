@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import OrderRow from "./OrderRow"; 
+import OrderRow from "./orderRow"; 
 import OrderDetailsModal from "./OrderDetailsModal";
 import Pagination from "./Pagination"; 
 import orderService from "../services/orderService"; 
@@ -115,7 +115,6 @@ function OrderTable({ orders, onRefresh }) {
                     </div>
                 </div>
 
-                {/* Stopka z paginacją */}
                 <div className="card-footer bg-light p-3 border-top">
                      <div className="d-flex justify-content-center">
                         <Pagination 

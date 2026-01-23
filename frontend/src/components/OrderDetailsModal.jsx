@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import orderService from "../services/orderService"; 
 import { useAuth } from "../context/AuthContext"; 
+import Alert from "./alert"; 
 
 function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
     const { isAdmin } = useAuth(); 
@@ -13,6 +14,17 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
     
+    const [alertState, setAlertState] = useState({
+        show: false,
+        message: '',
+        type: ''
+    });
+
+    const showAlert = (message, type = 'danger') => {
+        setAlertState({ show: true, message, type });
+        setTimeout(() => setAlertState(prev => ({ ...prev, show: false })), 4000);
+    };
+
     useEffect(() => {
         if (show && order) {
             const fetchStatuses = async () => {
@@ -34,6 +46,7 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
             setIsRatingMode(false);
             setRating(5);
             setComment("");
+            setAlertState({ show: false, message: '', type: '' });
         }
     }, [show, order]);
 
@@ -58,34 +71,41 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
         setLoading(true);
         try {
             await orderService.updateOrderStatus(order._id, selectedStatusId);
-            alert("Status zamówienia został zmieniony.");
-            if (onOrderUpdated) onOrderUpdated();
-            onClose();
+            showAlert("Status zamówienia został zmieniony.", "success");
+            
+            setTimeout(() => {
+                if (onOrderUpdated) onOrderUpdated();
+                onClose();
+            }, 2000);
+
         } catch (error) {
-            alert("Błąd zmiany statusu: " + (error.response?.data?.message || "Nieznany błąd"));
+            showAlert("Błąd zmiany statusu: " + (error.response?.data?.message || "Nieznany błąd"), "danger");
         } finally {
             setLoading(false);
         }
     };
 
     const handleCancelOrder = async () => {
-        if (!window.confirm("Czy na pewno chcesz anulować to zamówienie?")) return;
         
         const cancelledStatus = allStatuses.find(s => s.nazwa === "ANULOWANE");
-        
         if (!cancelledStatus) {
-            alert("Błąd: Nie znaleziono statusu 'ANULOWANE' w systemie.");
+            showAlert("Błąd: Nie znaleziono statusu 'ANULOWANE' w systemie.", "danger");
             return;
         }
 
         setLoading(true);
         try {
             await orderService.updateOrderStatus(order._id, cancelledStatus._id);
-            alert("Zamówienie zostało anulowane.");
-            if (onOrderUpdated) onOrderUpdated();
-            onClose();
+            
+            showAlert("Zamówienie zostało pomyślnie anulowane.", "success");
+            
+            setTimeout(() => {
+                if (onOrderUpdated) onOrderUpdated();
+                onClose();
+            }, 2000);
+
         } catch (error) {
-            alert("Błąd anulowania: " + (error.response?.data?.error || error.message));
+            showAlert("Błąd anulowania: " + (error.response?.data?.error || error.message), "danger");
         } finally {
             setLoading(false);
         }
@@ -95,11 +115,15 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
         setLoading(true);
         try {
             await orderService.rateOrder(order._id, { ocena: rating, komentarz: comment });
-            alert("Dziękujemy za opinię!");
-            if (onOrderUpdated) onOrderUpdated();
-            onClose();
+            showAlert("Dziękujemy za opinię!", "success");
+            
+            setTimeout(() => {
+                if (onOrderUpdated) onOrderUpdated();
+                onClose();
+            }, 2000);
+            
         } catch (error) {
-            alert("Błąd wysyłania opinii: " + (error.response?.data?.error || error.message));
+            showAlert("Błąd wysyłania opinii: " + (error.response?.data?.error || error.message), "danger");
         } finally {
             setLoading(false);
         }
@@ -107,38 +131,24 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
 
     const renderStatusSection = () => {
         if (isAdmin) {
-            return (
+             return (
                 <div className="bg-light p-3 rounded mb-3 border">
                     <label className="form-label fw-bold text-dark mb-2">Zmień status (Admin):</label>
                     <div className="d-flex gap-2">
-                        <select 
-                            className="form-select border-secondary" 
-                            value={selectedStatusId} 
-                            onChange={(e) => setSelectedStatusId(e.target.value)}
-                        >
-                            {allStatuses.map(status => (
-                                <option key={status._id} value={status._id}>
-                                    {status.nazwa}
-                                </option>
-                            ))}
+                        <select className="form-select border-secondary" value={selectedStatusId} onChange={(e) => setSelectedStatusId(e.target.value)}>
+                            {allStatuses.map(status => <option key={status._id} value={status._id}>{status.nazwa}</option>)}
                         </select>
-                        <button 
-                            className="btn btn-dark text-nowrap px-4" 
-                            onClick={handleAdminStatusChange}
-                            disabled={loading}
-                        >
+                        <button className="btn btn-dark text-nowrap px-4" onClick={handleAdminStatusChange} disabled={loading}>
                             {loading ? "Zapis..." : "Zapisz"}
                         </button>
                     </div>
                 </div>
             );
         } else {
-            return (
+             return (
                 <div className="mb-2">
                     <span className="fw-bold text-dark me-2">Status:</span>
-                    <span className={`badge rounded-pill px-3 py-2 fw-normal ${getStatusBadgeClass(statusName)}`}>
-                        {statusName}
-                    </span>
+                    <span className={`badge rounded-pill px-3 py-2 fw-normal ${getStatusBadgeClass(statusName)}`}>{statusName}</span>
                 </div>
             );
         }
@@ -150,7 +160,7 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
 
             <div className="modal fade show d-block" tabIndex="-1">
                 <div className="modal-dialog modal-dialog-centered modal-lg">
-                    <div className="modal-content shadow border-0">
+                    <div className="modal-content shadow border-0 position-relative">
                         
                         <div className="modal-header bg-dark text-white">
                             <h5 className="modal-title fs-5">
@@ -158,26 +168,24 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
                             </h5>
                             <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                         </div>
-                        
-                        <div className="modal-body">
-                            {isAdmin && renderStatusSection()}
 
+                        <Alert 
+                            show={alertState.show} 
+                            message={alertState.message} 
+                            type={alertState.type} 
+                            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+                        />
+                        
+                        <div className="modal-body pt-4">
+                            {isAdmin && renderStatusSection()}
+                            
                             <div className="row mb-4">
                                 <div className="col-md-6">
                                     <h6 className="border-bottom pb-2 mb-3 text-uppercase small text-muted fw-bold">Informacje</h6>
-                                    
                                     {!isAdmin && renderStatusSection()}
-                                    
-                                    <div className="mb-2">
-                                        <span className="fw-bold text-dark">Data: </span>
-                                        <span className="text-secondary">{order.createdAt ? new Date(order.createdAt).toLocaleString() : "-"}</span>
-                                    </div>
-                                    <div className="mb-2">
-                                        <span className="fw-bold text-dark">ID Pełne: </span>
-                                        <span className="text-secondary font-monospace small">{order._id}</span>
-                                    </div>
+                                    <div className="mb-2"><span className="fw-bold text-dark">Data: </span><span className="text-secondary">{order.createdAt ? new Date(order.createdAt).toLocaleString() : "-"}</span></div>
+                                    <div className="mb-2"><span className="fw-bold text-dark">ID Pełne: </span><span className="text-secondary font-monospace small">{order._id}</span></div>
                                 </div>
-
                                 <div className="col-md-6">
                                      <h6 className="border-bottom pb-2 mb-3 text-uppercase small text-muted fw-bold">Klient</h6>
                                      <div className="mb-1"><span className="fw-bold">Odbiorca:</span> {order.imie} {order.nazwisko}</div>
@@ -187,12 +195,12 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
                                 </div>
                             </div>
                             
-                            {isRatingMode && !isAdmin ? (
+                             {isRatingMode && !isAdmin ? (
                                 <div className="bg-light p-3 rounded mb-4 border shadow-sm">
                                     <h6 className="fw-bold mb-3">Oceń zamówienie</h6>
                                     <div className="mb-3">
                                         <label className="form-label small text-uppercase fw-bold">Ocena (1-5)</label>
-                                        <select className="form-select" value={rating} onChange={e => setRating(Number(e.target.value))}>
+                                        <select className="form-select w-auto" value={rating} onChange={e => setRating(Number(e.target.value))}>
                                             <option value="5">5 - Rewelacja</option>
                                             <option value="4">4 - Dobrze</option>
                                             <option value="3">3 - Przeciętnie</option>
@@ -211,17 +219,10 @@ function OrderDetailsModal({ show, order, onClose, onOrderUpdated }) {
                                 </div>
                             ) : hasOpinion && (
                                 <div className="alert alert-info mb-4 border-info">
-                                    <h6 className="alert-heading fw-bold d-flex align-items-center">
-                                        <i className="bi bi-chat-quote-fill me-2 fs-5"></i> Opinia klienta
-                                    </h6>
+                                    <h6 className="alert-heading fw-bold"><i className="bi bi-star-fill text-warning me-2"></i>Opinia klienta</h6>
                                     <hr />
-                                    <div className="d-flex align-items-center mb-2">
-                                        <span className="fw-bold me-2">Ocena:</span>
-                                        {[...Array(5)].map((_, i) => (
-                                            <i key={i} className={`bi bi-star${i < order.opinia.ocena ? '-fill text-warning' : ''}`}></i>
-                                        ))}
-                                    </div>
-                                    <p className="mb-0 fst-italic">"{order.opinia.komentarz || "Brak komentarza"}"</p>
+                                    <p className="mb-1"><strong>Ocena:</strong> {order.opinia.ocena}/5</p>
+                                    <p className="mb-0"><strong>Komentarz:</strong> {order.opinia.komentarz || "Brak komentarza"}</p>
                                 </div>
                             )}
 

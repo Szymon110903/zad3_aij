@@ -388,7 +388,7 @@ productApi.patch('/:id/desc', async (req, res) => {
                 'Content-Type': 'application/json',
             },
         }); 
-
+        console.log(response.data);
         const generatedDescription = response.data.choices[0].message.content.trim();
 
         produkt.opis = generatedDescription;
@@ -399,8 +399,12 @@ productApi.patch('/:id/desc', async (req, res) => {
             seoDescription: generatedDescription 
         });
 
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+   } catch (error) {
+        if (error.response) {
+            return res.status(error.response.status).json({ error: JSON.stringify(error.response.data) });
+        } else {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: error.message });
+        }
     }
 });
 

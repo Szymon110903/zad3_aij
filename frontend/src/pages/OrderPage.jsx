@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import orderService from "../services/orderService.jsx";
 import AddressForm from "../components/AddressForm";
 import OrderSummary from "../components/OrderSummary";
+import Alert from "../components/alert"; 
 
 function OrderPage() {
     const { username } = useAuth();
@@ -14,19 +15,18 @@ function OrderPage() {
     const [loading, setLoading] = useState(false);
     const [idStatusu, setIdStatusu] = useState(null);
     const [recipient, setRecipient] = useState({
-        firstname: "",
-        lastname: "", 
-        email: "", 
-        phone: "",
-        city: "", 
-        postal_number: "", 
-        street: "", 
-        number: "" 
+        firstname: "", lastname: "", email: "", phone: "",
+        city: "", postal_number: "", street: "", number: "" 
     });
     const [errors, setErrors] = useState({});
+    
+    const [showAlert, setShowAlert] = useState({
+        show: false,
+        message: '',
+        type: ''
+    });
 
     const totalOrderValue = cartItems.reduce((acc, item) => acc + (item.cena_jednostkowa * item.quantity), 0).toFixed(2);
-
 
     useEffect(() => {
         const pobierzStatusy = async () => {
@@ -74,9 +74,15 @@ function OrderPage() {
 
     const handleSubmit = async () => {
         if (!validate()) {
-            alert("Popraw błędy w formularzu.");
+            setShowAlert({
+                show: true,
+                message: 'Popraw błędy w formularzu.',
+                type: 'danger'
+            });
+            setTimeout(() => setShowAlert(prev => ({ ...prev, show: false })), 3000);
             return;
         }
+
         setLoading(true);
         try {
             const zmapowanyKoszyk = cartItems.map(item => ({
@@ -104,14 +110,29 @@ function OrderPage() {
             };
 
             await orderService.createOrder(order);
-            alert("Zamówienie złożone pomyślnie!");
-            if (clearCart) clearCart();
-            navigate('/'); 
+            
+            setShowAlert({
+                show: true,
+                message: 'Zamówienie złożone pomyślnie! Przekierowanie...',
+                type: 'success'
+            });
+
+            setTimeout(() => {
+                if (clearCart) clearCart();
+                navigate('/'); 
+            }, 2000);
 
         } catch (err) {
             console.error("Błąd wysyłania:", err);
             const msg = err.response?.data?.error || err.response?.data?.message || err.message;
-            alert(`Błąd: ${msg}`);
+            
+            setShowAlert({
+                show: true,
+                message: `Błąd: ${msg}`,
+                type: 'danger'
+            });
+            setTimeout(() => setShowAlert(prev => ({ ...prev, show: false })), 5000);
+
         } finally {
             setLoading(false);
         }
@@ -124,7 +145,6 @@ function OrderPage() {
             <h2 className="mb-4 text-center fw-bold">Finalizacja Zamówienia</h2>
             
             <div className="row g-4 align-items-stretch">
-                
                 <div className="col-lg-5 mb-4 mb-lg-0">
                     <AddressForm 
                         recipient={recipient}
@@ -142,6 +162,13 @@ function OrderPage() {
                     />
                 </div>
             </div>
+
+            <Alert 
+                message={showAlert.message} 
+                show={showAlert.show} 
+                type={showAlert.type}
+                onClose={() => setShowAlert(prev => ({ ...prev, show: false }))}
+            />
         </div>
     );
 }

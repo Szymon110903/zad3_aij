@@ -18,7 +18,7 @@ const updateProduct = async (id, productData) => {
     const response = await api.patch(`/products/${id}`, productData);
     return response.data;
 };
-const generateDescription = async (id) => {
+const generateAndSaveDescription = async (id) => {
     const response = await api.patch(`/products/${id}/desc`);
     return response.data; 
 };
@@ -39,7 +39,7 @@ const productsService = {
     getProducts,
     getProductSeoDescription,
     updateProduct,
-    generateDescription,
+    generateAndSaveDescription,
     initDatabase
 }
 

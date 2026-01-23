@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Alert from "./alert.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx"; 
 import CounterButtons from "./CounterButtons.jsx";
 
 function ActionAddToCart({ product }) {
-    const [licznik, setLicznik] = useState(0); // Domyślnie 0
+    const [licznik, setLicznik] = useState(0);
     const [showAlert, setShowAlert] = useState({
         show: false,
         message: '',
@@ -12,24 +13,34 @@ function ActionAddToCart({ product }) {
     });
     
     const { addToCart } = useCart();
+    const { isAdmin } = useAuth(); 
 
     const handleAddToCart = () => {
+        if (isAdmin) {
+            setShowAlert({
+                show: true,
+                message: 'Administrator nie może składać zamówień.',
+                type: 'danger'
+            });
+            
+            setTimeout(() => {
+                setShowAlert(prev => ({ ...prev, show: false }));
+            }, 3000);
+            return; 
+        }
+
         if (licznik > 0) {
-            // Dodanie do koszyka
             addToCart({ ...product, quantity: licznik });
             
-            // Powiadomienie
             setShowAlert({
                 show: true,
                 message: `Dodano ${licznik} szt. "${product.nazwa}" do koszyka.`,
                 type: "success"
             });
 
-            // 👇 UX: Reset licznika po dodaniu, aby uniknąć dublowania kliknięć
             setLicznik(0); 
 
         } else {
-            // Błąd walidacji
             setShowAlert({
                 show: true,
                 message: `Wybierz ilość produktu przed dodaniem.`,
@@ -37,7 +48,6 @@ function ActionAddToCart({ product }) {
             });
         }
 
-        // Ukrycie alertu po 3 sek
         setTimeout(() => {
             setShowAlert(prev => ({ ...prev, show: false }));
         }, 3000);
@@ -53,13 +63,12 @@ function ActionAddToCart({ product }) {
                 <button 
                     className="btn btn-primary btn-sm text-nowrap"
                     onClick={handleAddToCart}
-                    disabled={licznik === 0} // Opcjonalnie: zablokuj przycisk gdy 0
+                    disabled={licznik === 0} 
                 >
                     <i className="bi bi-cart-plus me-1"></i> Dodaj
                 </button>
             </div>
 
-            {/* Alert wyświetlany absolutnie pod przyciskami lub obok */}
             <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 10, marginTop: '5px' }}>
                 <Alert 
                     message={showAlert.message} 

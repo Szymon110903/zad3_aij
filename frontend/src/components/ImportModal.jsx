@@ -7,7 +7,6 @@ function ImportModal({ show, onClose, onSuccess }) {
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
 
-    // Reset stanów przy otwarciu/zamknięciu
     if (!show) return null;
 
     const handleFileChange = (e) => {
@@ -16,15 +15,14 @@ function ImportModal({ show, onClose, onSuccess }) {
         setError("");
         setSuccessMsg("");
 
-        // WALIDACJA KLIENTA (Wymaganie D3)
         if (selectedFile) {
             const validExtensions = ['json', 'csv', 'xls', 'xlsx'];
             const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
             
             if (!validExtensions.includes(fileExtension)) {
                 setError("Nieprawidłowy format pliku. Dozwolone: .json, .csv, .xls");
-                setFile(null); // Resetuj plik
-                e.target.value = null; // Wyczyść input
+                setFile(null); 
+                e.target.value = null; 
             }
         }
     };
@@ -44,7 +42,6 @@ function ImportModal({ show, onClose, onSuccess }) {
             setSuccessMsg(`Sukces! Dodano ${response.dodano} produktów. Nowe kategorie zostały utworzone automatycznie.`);
             setFile(null);
             
-            // Po 2 sekundach zamknij modal i odśwież widok rodzica
             setTimeout(() => {
                 if (onSuccess) onSuccess();
                 onClose();
@@ -53,7 +50,6 @@ function ImportModal({ show, onClose, onSuccess }) {
 
         } catch (err) {
             console.error(err);
-            // Obsługa błędów z backendu (np. brak uprawnień)
             setError(err.response?.data?.error || "Wystąpił błąd podczas importu.");
         } finally {
             setLoading(false);
@@ -88,7 +84,6 @@ function ImportModal({ show, onClose, onSuccess }) {
                                 />
                             </div>
 
-                            {/* Komunikaty */}
                             {error && <div className="alert alert-danger py-2 small"><i className="bi bi-exclamation-triangle me-2"></i>{error}</div>}
                             {successMsg && <div className="alert alert-success py-2 small"><i className="bi bi-check-circle me-2"></i>{successMsg}</div>}
                         </div>

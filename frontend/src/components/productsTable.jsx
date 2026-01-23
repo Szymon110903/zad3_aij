@@ -19,15 +19,9 @@ function ProductsTable({ products, ActionElement = ActionAddToCart, error, onRef
     };
 
     const handleAdminSave = async (updatedProduct) => {
-        try {
-            await productsService.updateProduct(updatedProduct._id, updatedProduct);
-            alert("Produkt został zaktualizowany!");
-            handleCloseModal();
-            if (onRefresh) onRefresh();
-        } catch (err) {
-            console.error("Błąd edycji produktu:", err);
-            alert("Wystąpił błąd podczas zapisywania zmian.");
-        }
+        await productsService.updateProduct(updatedProduct._id, updatedProduct);
+        
+        if (onRefresh) onRefresh();
     };
 
     return (

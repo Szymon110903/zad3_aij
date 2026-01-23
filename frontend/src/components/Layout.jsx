@@ -12,7 +12,6 @@ function Layout() {
     const [selectedCategory, setSelectedCategory] = React.useState('Wszystkie');
     const [kategorie, setKategorie] = useState([]);
     
-    // Pobranie kategorii
     useEffect(() => {
         api.get('/category')
             .then(res => {

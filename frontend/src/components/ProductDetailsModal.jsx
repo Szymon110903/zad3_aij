@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext"; 
 import productsService from "../services/ProductService"; 
 import categoryService from "../services/categoryService"; 
+import Alert from "./alert"; 
 
 function ProductDetailsModal({ show, product, onClose, onSave }) {
     const { isAdmin } = useAuth();
@@ -9,25 +10,33 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
     const [formData, setFormData] = useState({ ...product });
     const [categories, setCategories] = useState([]);
     
-    // Stany dla widoku Usera
     const [seoDescription, setSeoDescription] = useState("");
     const [loadingSeo, setLoadingSeo] = useState(false);
     
-    // Stany dla Admina (AI)
     const [isGenerating, setIsGenerating] = useState(false);
+
+    const [alertState, setAlertState] = useState({
+        show: false,
+        message: '',
+        type: ''
+    });
+
+    const showAlert = (message, type = 'danger') => {
+        setAlertState({ show: true, message, type });
+        setTimeout(() => setAlertState(prev => ({ ...prev, show: false })), 4000);
+    };
 
     useEffect(() => {
         if (show && product) {
             setFormData({ ...product });
+            setAlertState({ show: false, message: '', type: '' });
 
             if (isAdmin) {
-                // Admin: Pobierz listę kategorii do edycji
                 categoryService.getAllCategories()
                     .then(data => setCategories(data))
                     .catch(err => console.error("Błąd pobierania kategorii:", err));
             } 
             else {
-                // User: Pobierz SEO opis
                 setSeoDescription(""); 
                 setLoadingSeo(true);
                 productsService.getProductSeoDescription(product._id)
@@ -48,10 +57,10 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
         try {
             const data = await productsService.generateAndSaveDescription(product._id);
             setFormData(prev => ({ ...prev, opis: data.seoDescription }));
-            alert("Opis zaktualizowany!");
+            showAlert("Opis zaktualizowany przez AI!", "success");
         } catch (e) { 
             console.error(e);
-            alert("Błąd generowania opisu AI"); 
+            showAlert("Błąd generowania opisu AI: " + (e.response?.data?.error || e.message), "danger");
         } finally { 
             setIsGenerating(false); 
         }
@@ -62,9 +71,27 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = () => {
-        if (onSave) onSave(formData);
-        onClose();
+    const handleSave = async () => {
+        if (!formData.nazwa || formData.cena_jednostkowa === "" || Number(formData.cena_jednostkowa) < 0) {
+            showAlert("Podaj poprawną nazwę i cenę produktu.", "danger");
+            return;
+        }
+
+        try {
+            if (onSave) {
+                await onSave(formData); 
+            }
+
+            showAlert("Zmiany zostały zapisane pomyślnie!", "success");
+
+            setTimeout(() => {
+                onClose();
+            }, 2000); 
+
+        } catch (error) {
+            console.error(error);
+            showAlert("Wystąpił błąd podczas zapisywania zmian.", "danger");
+        }
     };
 
     const getCategoryId = (kategoria) => {
@@ -79,14 +106,21 @@ function ProductDetailsModal({ show, product, onClose, onSave }) {
             <div className="modal-backdrop show" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }} onClick={onClose}></div>
             <div className="modal fade show d-block" tabIndex="-1">
                 <div className="modal-dialog modal-dialog-centered modal-lg">
-                    <div className="modal-content shadow border-0">
+                    <div className="modal-content shadow border-0 position-relative">
                         
                         <div className="modal-header bg-dark text-white">
                             <h5 className="modal-title">{isAdmin ? `Edycja: ${product.nazwa}` : product.nazwa}</h5>
                             <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
                         </div>
 
-                        <div className="modal-body">
+                        <Alert 
+                            show={alertState.show} 
+                            message={alertState.message} 
+                            type={alertState.type} 
+                            onClose={() => setAlertState(prev => ({ ...prev, show: false }))}
+                        />
+
+                        <div className="modal-body pt-4">
                             {isAdmin ? (
                                 <form>
                                     <div className="row mb-3">
